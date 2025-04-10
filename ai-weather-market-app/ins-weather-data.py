@@ -4,7 +4,7 @@ from datetime import datetime
 # Replace with your actual DB credentials
 DB_NAME = "weather_db"
 DB_USER = "postgres"
-DB_PASSWORD = "yourpassword"
+DB_PASSWORD = ""
 DB_HOST = "localhost"
 DB_PORT = "5432"
 
@@ -62,8 +62,7 @@ try:
 
 except Exception as e:
     print("❌ Error inserting weather data:", e)
-
 finally:
-    if conn:
+    if 'conn' in locals() and conn:
         cursor.close()
         conn.close()
