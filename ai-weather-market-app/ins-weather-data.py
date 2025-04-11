@@ -1,19 +1,19 @@
 import psycopg2 # type: ignore
 from datetime import datetime
+import pytz # type: ignore
 
 # Replace with your actual DB credentials
 DB_NAME = "weather_db"
-DB_USER = "postgres"
-DB_PASSWORD = ""
+DB_USER = "weather_user"
+DB_PASSWORD = "wangu1199oJ*db"
 DB_HOST = "localhost"
 DB_PORT = "5432"
-
 # Sample weather data
 weather_data = {
     "location": "Nairobi, Kenya",
     "latitude": -1.286389,
     "longitude": 36.817223,
-    "recorded_at": datetime.utcnow(),
+    "recorded_at": datetime.now(pytz.utc),
     "temperature_c": 24.76,
     "humidity_percent": 62.50,
     "wind_speed_kmh": 13.20,
