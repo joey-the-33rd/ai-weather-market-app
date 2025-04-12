@@ -11,11 +11,11 @@ load_dotenv()
 app = Flask(__name__)
 
 # Configurations from .env
-API_KEY = os.getenv("API_KEY")
+API_KEY = os.getenv("WEATHER_API_KEY")
 MAX_CALLS_PER_MONTH = 999999
 COUNTER_FILE = 'api_counter.json'
 
-DB_CONFIG = {
+DB_PARAMS = {
     "dbname": os.getenv("DB_NAME"),
     "user": os.getenv("DB_USER"),
     "password": os.getenv("DB_PASSWORD"),
