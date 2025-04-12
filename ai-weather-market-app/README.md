@@ -35,7 +35,7 @@ Built with a full-stack architecture, the app combines **AI models**, **secure A
 
 All documentation lives in the `docs/` directory.
 
-### Key Docs:
+### Key Docs
 
 - `docs/setup.md` – Step-by-step environment setup
 - `docs/api-spec.md` – API endpoints and response formats
@@ -48,22 +48,26 @@ All documentation lives in the `docs/` directory.
 ## 🚀 Installation Guide
 
 ### 1. **Clone the Repository**
+
 ```bash
 git clone https://github.com/joeythe33rd/weather-ai-app.git
 cd weather-ai-app
 ```
 
 ### 2. **Install Backend Dependencies**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 3. **Start Flask Server**
+
 ```bash
 python app.py
 ```
 
 ### 4. **Setup Frontend (React Native)**
+
 ```bash
 cd frontend
 npm install
@@ -71,11 +75,15 @@ npm start
 ```
 
 ### 5. **Database Setup (PostgreSQL)**
+
 Ensure PostgreSQL is installed and run:
+
 ```sql
 CREATE DATABASE weather_db;
 ```
+
 Then:
+
 ```bash
 python setup_db.py
 ```
@@ -88,19 +96,24 @@ We welcome contributors to improve the project!
 
 1. Fork the repository.
 2. Create a feature branch:
+
 ```bash
 git checkout -b feature-your-feature-name
 ```
-3. Make your changes and commit:
+
+3.Make your changes and commit:
+
 ```bash
 git commit -m "Add: Your detailed message"
 ```
-4. Push and open a pull request:
+
+4.Push and open a pull request:
+
 ```bash
 git push origin feature-your-feature-name
 ```
 
-### ✅ Contribution Checklist:
+### ✅ Contribution Checklist
 
 - [ ] Follow PEP8 standards (Python)
 - [ ] Write or update tests
@@ -147,6 +160,7 @@ See the [LICENSE](./LICENSE) file for details.
 ## 🙌 Acknowledgements
 
 Special thanks to:
+
 - Kenyan farmers and agribusiness cooperatives
 - Open-source developers and AI researchers
 - Institutions contributing open data (NOAA, FAO, KenyaMet)
@@ -158,4 +172,3 @@ Special thanks to:
 - **Lead Developer:** [Joseph Ndungu](https://www.linkedin.com/in/joseph-ndungu-74431b135/)
 - **Email:** [jothefu@gmail.com](mailto:jothefu@gmail.com)
 - **GitHub:** [joeythe33rd](https://github.com/joeythe33rd)
-
