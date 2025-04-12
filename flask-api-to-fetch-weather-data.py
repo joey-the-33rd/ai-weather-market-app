@@ -1,14 +1,28 @@
-from flask import Flask, request, jsonify  # type: ignore
-import requests  # type: ignore
+from flask import Flask, request, jsonify # type: ignore
+import requests # type: ignore
 import json
 import os
 from datetime import datetime
+from dotenv import load_dotenv # type: ignore
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 
-API_KEY = "7ee4289ca3374d4c88e51905250904"
+# Configurations from .env
+API_KEY = os.getenv("API_KEY")
 MAX_CALLS_PER_MONTH = 999999
 COUNTER_FILE = 'api_counter.json'
+
+DB_CONFIG = {
+    "dbname": os.getenv("DB_NAME"),
+    "user": os.getenv("DB_USER"),
+    "password": os.getenv("DB_PASSWORD"),
+    "host": os.getenv("DB_HOST"),
+    "port": os.getenv("DB_PORT")
+}
+
 
 
 def load_counter():
