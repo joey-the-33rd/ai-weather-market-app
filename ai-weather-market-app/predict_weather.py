@@ -10,7 +10,7 @@ from sklearn.preprocessing import MinMaxScaler # type: ignore
 load_dotenv()
 
 # Load the trained LSTM model
-model = load_model("models/lstm_weather_model.h5")
+model = load_model(os.path.join(os.path.dirname(__file__), "models/lstm_weather_model.h5"))
 # Connect to PostgreSQL
 conn = psycopg2.connect(
     dbname=os.getenv("DB_NAME"),
@@ -40,12 +40,17 @@ scaled_data = scaler.fit_transform(df[['temperature_c', 'humidity_percent', 'win
 # Prepare input for prediction
 X_input = np.expand_dims(scaled_data, axis=0)  # Shape: (1, 30, features)
 
-# Predict
-predicted_temp_scaled = model.predict(X_input)[0][0]
+# Predict all features
+predicted_scaled = model.predict(X_input)[0]  # Get all predicted features
 predicted_data = np.zeros((1, 5))
-predicted_data[0][0] = predicted_temp_scaled
+predicted_data[0] = predicted_scaled  # Store all predictions
 
-# Inverse transform only temperature
-original_temp = scaler.inverse_transform(predicted_data)[0][0]
+# Inverse transform all features
+original_values = scaler.inverse_transform(predicted_data)[0]
 
-print(f"🌤️ Predicted temperature for next time step: {original_temp:.2f}°C")
+print("🌤️ Weather Prediction for Next Time Step:")
+print(f"•🌡 Temperature: {original_values[0]:.2f}°C")
+print(f"• Humidity: {original_values[1]:.2f}%")
+print(f"• 💨 Wind Speed: {original_values[2]:.2f} km/h")
+print(f"• Pressure: {original_values[3]:.2f} hPa")
+print(f"• 🌧 Precipitation: {original_values[4]:.2f} mm")
