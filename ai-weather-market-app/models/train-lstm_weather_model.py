@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import psycopg2 # type: ignore
 import pandas as pd # type: ignore
@@ -35,22 +36,26 @@ except Exception as e:
 
 # Query historical weather data
 query = """
-    SELECT 
-        recorded_at,
-        temperature_c,
-        humidity_percent,
-        wind_speed_kmh,
-        pressure_hpa,
-        precipitation_mm
-    FROM weather.weather_data
-    WHERE temperature_c IS NOT NULL
-    ORDER BY recorded_at;
+SELECT 
+    recorded_at,
+    temperature_c,
+    humidity_percent,
+    wind_speed_kmh,
+    pressure_hpa,
+    precipitation_mm
+FROM weather_data
+WHERE temperature_c IS NOT NULL
+ORDER BY recorded_at;
 """
 
 df = pd.read_sql(query, conn)
+print("[INFO] Retrieved {} records from database".format(len(df)))
 
 # Handle missing values
 df.dropna(inplace=True)
+print("[INFO] After dropping nulls: {} records remain".format(len(df)))
+print("Sample data:")
+print(df.head())
 
 # Normalize features
 scaler = MinMaxScaler()
@@ -106,11 +111,11 @@ history = model.fit(X_train, y_train, epochs=50, batch_size=32,
 
 # Evaluate
 loss = model.evaluate(X_test, y_test)
-print(f"📉 Final Test Loss (MSE): {loss:.4f}")
+print("[RESULT] Final Test Loss (MSE): {:.4f}".format(loss))
 
 # Save model and scaler
-print("📁Current working directory:", os.getcwd())
+print("[INFO] Current working directory:", os.getcwd())
 model.save("ai-weather-market-app/models/lstm_weather_model.h5")
 import joblib # type: ignore
 joblib.dump(scaler, "ai-weather-market-app/models/scaler.save")
-print("📦 Model and scaler saved.")
+print("[INFO] Model and scaler saved.")
