@@ -22,7 +22,8 @@ DB_PARAMS = {
 }
 
 # Load pre-trained LSTM model
-MODEL = load_model("lstm_weather_model.h5")
+MODEL_PATH = os.path.join("models", "lstm_weather_model.h5")
+MODEL = load_model(MODEL_PATH)
 
 @app.route("/weather", methods=["GET"])
 def get_weather():
