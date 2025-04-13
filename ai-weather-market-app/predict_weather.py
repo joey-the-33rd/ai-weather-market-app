@@ -50,7 +50,7 @@ original_values = scaler.inverse_transform(predicted_data)[0]
 
 print("🌤️ Weather Prediction for Next Time Step:")
 print(f"•🌡 Temperature: {original_values[0]:.2f}°C")
-print(f"• Humidity: {original_values[1]:.2f}%")
+print(f"• 🌬 Humidity: {original_values[1]:.2f}%")
 print(f"• 💨 Wind Speed: {original_values[2]:.2f} km/h")
-print(f"• Pressure: {original_values[3]:.2f} hPa")
+print(f"• 🎈Pressure: {original_values[3]:.2f} hPa")
 print(f"• 🌧 Precipitation: {original_values[4]:.2f} mm")
