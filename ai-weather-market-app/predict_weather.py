@@ -10,8 +10,7 @@ from sklearn.preprocessing import MinMaxScaler # type: ignore
 load_dotenv()
 
 # Load the trained LSTM model
-model = load_model("lstm_weather_model.h5")
-
+model = load_model("models/lstm_weather_model.h5")
 # Connect to PostgreSQL
 conn = psycopg2.connect(
     dbname=os.getenv("DB_NAME"),
@@ -24,7 +23,7 @@ conn = psycopg2.connect(
 # Fetch the last 30 records
 query = """
 SELECT recorded_at, temperature_c, humidity_percent, wind_speed_kmh, pressure_hpa, precipitation_mm
-FROM weather_data
+FROM weather.weather_data
 ORDER BY recorded_at DESC
 LIMIT 30;
 """
