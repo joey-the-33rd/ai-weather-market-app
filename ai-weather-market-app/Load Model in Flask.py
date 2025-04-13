@@ -4,11 +4,13 @@ from flask import Flask, request, jsonify # type: ignore
 import numpy as np
 import tensorflow as tf # type: ignore
 from sklearn.preprocessing import MinMaxScaler # type: ignore
+import os
 
 app = Flask(__name__)
 
 # Load trained model
-model = tf.keras.models.load_model('weather_lstm.h5')
+model_path = os.path.join(os.path.dirname(__file__), 'models', 'lstm_weather_model.h5')
+model = tf.keras.models.load_model(model_path, compile=False)
 
 @app.route('/predict', methods=['POST'])
 def predict():
