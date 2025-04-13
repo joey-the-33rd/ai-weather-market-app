@@ -1,13 +1,19 @@
-import psycopg2 # type: ignore
+import psycopg2  # type: ignore
 from datetime import datetime
-import pytz # type: ignore
+import pytz  # type: ignore
+from dotenv import load_dotenv # type: ignore
+import os
 
-# Replace with your actual DB credentials
-DB_NAME = "weather_db"
-DB_USER = "weather_user"
-DB_PASSWORD = "wangu1199oJ*db"
-DB_HOST = "localhost"
-DB_PORT = "5432"
+# Load environment variables from .env file
+load_dotenv()
+
+# Fetch credentials securely
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+
 # Sample weather data
 weather_data = {
     "location": "Nairobi, Kenya",
@@ -62,6 +68,7 @@ try:
 
 except Exception as e:
     print("❌ Error inserting weather data:", e)
+
 finally:
     if 'conn' in locals() and conn:
         cursor.close()
