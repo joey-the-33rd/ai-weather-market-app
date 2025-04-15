@@ -5,6 +5,7 @@ from dotenv import load_dotenv # type: ignore
 import psycopg2 # type: ignore
 import numpy as np
 import pandas as pd # type: ignore
+import joblib # type: ignore
 from tensorflow.keras.models import load_model # type: ignore
 from datetime import datetime, timedelta
 from functools import lru_cache
@@ -26,9 +27,11 @@ DB_PARAMS = {
     "port": os.getenv("DB_PORT")
 }
 
-# Load pre-trained LSTM model
+# Load pre-trained LSTM model and scaler
 MODEL_PATH = os.path.join("models", "lstm_weather_model.h5")
+SCALER_PATH = os.path.join("models", "scaler.save")
 MODEL = load_model(MODEL_PATH)
+SCALER = joblib.load(SCALER_PATH)
 
 @app.route("/weather", methods=["GET"])
 def get_weather():
@@ -114,12 +117,13 @@ def predict_weather():
         conn = psycopg2.connect(**DB_PARAMS)
         cursor = conn.cursor()
         
-        if predict_type == "temperature":
-            query = "SELECT temperature_c FROM weather_data ORDER BY recorded_at DESC LIMIT 10;"
-        elif predict_type == "humidity":
-            query = "SELECT humidity FROM weather_data ORDER BY recorded_at DESC LIMIT 10;"
-        else:  # wind
-            query = "SELECT wind_speed_kph FROM weather_data ORDER BY recorded_at DESC LIMIT 10;"
+        # Update queries to fetch all 5 features used in training
+        query = """
+        SELECT temperature_c, humidity_percent, wind_speed_kmh, pressure_hpa, precipitation_mm
+        FROM weather_data
+        ORDER BY recorded_at DESC
+        LIMIT 10;
+        """
 
         cursor.execute(query)
         records = cursor.fetchall()
@@ -134,20 +138,43 @@ def predict_weather():
                 "suggestion": "Try again later when more data is available"
             }), 400
 
-        # Prepare input data
-        input_data = np.array(records).reshape(1, 10, 1)
-        
-        # Make prediction (using same model for demo - in production would use specialized models)
-        prediction = MODEL.predict(input_data)
+        # Prepare input data with all 5 features
+        input_data = np.array(records).astype(np.float32)
+        # Reshape to (seq_length, n_features)
+        input_data = input_data.reshape(-1, input_data.shape[-1])
+        # Scale input data
+        input_data_scaled = SCALER.transform(input_data)
+        # Create sequences
+        seq_length = 10
+        X_input = []
+        for i in range(seq_length, len(input_data_scaled) + 1):
+            X_input.append(input_data_scaled[i-seq_length:i])
+        X_input = np.array(X_input)
+        # Use the last sequence for prediction
+        X_input = X_input[-1].reshape(1, seq_length, input_data.shape[1])
+
+        # Make prediction
+        prediction = MODEL.predict(X_input)
+        # Map prediction output to feature index
+        feature_map = {
+            "temperature": 0,
+            "humidity": 1,
+            "wind": 2,
+            "pressure": 3,
+            "precipitation": 4
+        }
+        pred_index = feature_map.get(predict_type, 0)
+        pred_value = float(prediction[0][pred_index]) if prediction.shape[1] > pred_index else None
+
         result = {
             "prediction": {
                 "type": predict_type,
-                "value": float(prediction[0][0]),
-                "unit": "celsius" if predict_type == "temperature" else ("%" if predict_type == "humidity" else "kph")
+                "value": pred_value if pred_value is not None else "N/A",
+                "unit": "celsius" if predict_type == "temperature" else ("%" if predict_type == "humidity" else ("kph" if predict_type == "wind" else ""))
             },
             "metadata": {
                 "model": "LSTM",
-                "input_size": 10,
+                "input_size": seq_length,
                 "timestamp": datetime.now().isoformat()
             }
         }
@@ -188,11 +215,31 @@ def predict_all():
         conn = psycopg2.connect(**DB_PARAMS)
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT temperature_c, humidity, wind_speed_kph 
+            SELECT temperature_c, humidity_percent, wind_speed_kmh, pressure_hpa, precipitation_mm
             FROM weather_data 
             ORDER BY recorded_at DESC 
             LIMIT 10;
         """)
+        records = cursor.fetchall()
+
+        if len(records) < 10:
+            cursor.close()
+            conn.close()
+            return jsonify({
+                "error": "Insufficient historical data",
+                "required": 10,
+                "available": len(records)
+            }), 400
+
+        # Prepare input data (using same model for demo)
+        # Update multi-predict endpoint to use all 5 features
+        query = """
+        SELECT temperature_c, humidity_percent, wind_speed_kmh, pressure_hpa, precipitation_mm
+        FROM weather_data
+        ORDER BY recorded_at DESC
+        LIMIT 10;
+        """
+        cursor.execute(query)
         records = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -204,15 +251,26 @@ def predict_all():
                 "available": len(records)
             }), 400
 
-        # Prepare input data (using same model for demo)
-        temp_data = np.array([r[0] for r in records]).reshape(1, 10, 1)
-        humidity_data = np.array([r[1] for r in records]).reshape(1, 10, 1)
-        wind_data = np.array([r[2] for r in records]).reshape(1, 10, 1)
+        # Prepare input data with all 5 features
+        combined_data = np.array(records).astype(np.float32)
+        # Reshape and scale
+        combined_data = combined_data.reshape(-1, combined_data.shape[-1])
+        combined_data_scaled = SCALER.transform(combined_data)
+        # Create sequences
+        X_input = []
+        for i in range(seq_length, len(combined_data_scaled) + 1):
+            X_input.append(combined_data_scaled[i-seq_length:i])
+        X_input = np.array(X_input)
+        # Use last sequence for prediction
+        X_input = X_input[-1].reshape(1, seq_length, combined_data.shape[1])
 
         # Make predictions
-        temp_pred = float(MODEL.predict(temp_data)[0][0])
-        humidity_pred = float(MODEL.predict(humidity_data)[0][0])
-        wind_pred = float(MODEL.predict(wind_data)[0][0])
+        preds = MODEL.predict(X_input)
+        temp_pred = float(preds[0][0])
+        humidity_pred = float(preds[0][1]) if preds.shape[1] > 1 else "N/A"
+        wind_pred = float(preds[0][2]) if preds.shape[1] > 2 else "N/A"
+        pressure_pred = float(preds[0][3]) if preds.shape[1] > 3 else "N/A"
+        precipitation_pred = float(preds[0][4]) if preds.shape[1] > 4 else "N/A"
 
         result = {
             "predictions": [
@@ -230,11 +288,21 @@ def predict_all():
                     "type": "wind",
                     "value": wind_pred,
                     "unit": "kph"
+                },
+                {
+                    "type": "pressure",
+                    "value": pressure_pred,
+                    "unit": "hPa"
+                },
+                {
+                    "type": "precipitation",
+                    "value": precipitation_pred,
+                    "unit": "mm"
                 }
             ],
             "metadata": {
                 "model": "LSTM",
-                "input_size": 10,
+                "input_size": seq_length,
                 "timestamp": datetime.now().isoformat()
             }
         }
@@ -253,6 +321,17 @@ def predict_all():
             "type": e.__class__.__name__,
             "message": str(e)
         }), 500
+
+@app.route("/", methods=["GET"])
+def root():
+    return {
+        "message": "Welcome to the AI Weather & Market Prediction API",
+        "endpoints": {
+            "/weather": "Get current weather data. Query param: city (optional)",
+            "/api/predict": "Predict weather parameter. Query param: type (temperature, humidity, wind)",
+            "/api/predict/all": "Predict all weather parameters at once"
+        }
+    }
 
 if __name__ == "__main__":
     app.run(debug=True)
