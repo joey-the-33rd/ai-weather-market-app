@@ -1,15 +1,18 @@
-from flask import Flask, request, jsonify # type: ignore
-import requests # type: ignore
-import json
 import os
 from datetime import datetime, timedelta
 from dotenv import load_dotenv # type: ignore
-from functools import lru_cache
+from flask import Flask, request, jsonify # type: ignore
+import requests # type: ignore
+import json
 
-# Load environment variables
-load_dotenv()
+# Load environment variables explicitly from the .env file in ai-weather-market-app directory
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), 'ai-weather-market-app', '.env'))
 
 app = Flask(__name__)
+
+@app.route('/', methods=['GET'])
+def root():
+    return jsonify({"status": "Flask app is running"}), 200
 
 # Configure cache
 CACHE_DURATION = timedelta(minutes=30)  # Cache weather data for 30 minutes
@@ -28,8 +31,6 @@ DB_PARAMS = {
     "port": os.getenv("DB_PORT")
 }
 
-
-
 def load_counter():
     """Loads the API call counter from file."""
     if not os.path.exists(COUNTER_FILE):
@@ -37,12 +38,10 @@ def load_counter():
     with open(COUNTER_FILE, 'r') as f:
         return json.load(f)
 
-
 def save_counter(counter):
     """Saves the API call counter to a file."""
     with open(COUNTER_FILE, 'w') as f:
         json.dump(counter, f)
-
 
 @app.route('/weather', methods=['GET'])
 def get_weather():
@@ -196,4 +195,5 @@ def get_forecast():
         }), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.getenv("PORT", 5000))
+    app.run(debug=True, port=port)
