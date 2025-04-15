@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Assets/ai-weather-app-logo.png" alt="AI Weather App" width="400">
+  <img src="ai-weather-market-app/Assets/ai-weather-app-logo.png" alt="AI Weather App" width="400">
 </p>
 
 # 🌦️ AI-Powered Weather & Market Prediction App
