@@ -68,10 +68,22 @@ python app.py
 
 ### 4. **Setup Frontend (React Native)**
 
+The React Native frontend is located in the `WeatherApp` directory.
+
+To set up and run the React Native app:
+
 ```bash
-cd frontend
+cd WeatherApp
 npm install
 npm start
+```
+
+This will start the Metro bundler. You can then run the app on an emulator or physical device using:
+
+```bash
+npm run android
+# or
+npm run ios
 ```
 
 ### 5. **Database Setup (PostgreSQL)**
@@ -87,6 +99,12 @@ Then:
 ```bash
 python setup_db.py
 ```
+
+---
+
+## ⚠️ Note on ai-weather-market-app/App.js
+
+The `ai-weather-market-app/App.js` file contains React Native code and should not be run directly with Node.js. To run this code, use a React Native environment such as the one set up in the `WeatherApp` directory. It is recommended to move or integrate this code into the `WeatherApp` project for proper execution.
 
 ---
 
