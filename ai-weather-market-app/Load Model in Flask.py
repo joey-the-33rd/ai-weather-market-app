@@ -8,8 +8,11 @@ import os
 
 app = Flask(__name__)
 
+import tensorflow as tf # type: ignore
+
 # Load trained model
 model_path = os.path.join(os.path.dirname(__file__), 'models', 'lstm_weather_model.h5')
+
 model = tf.keras.models.load_model(model_path, compile=False)
 
 @app.route('/predict', methods=['POST'])
