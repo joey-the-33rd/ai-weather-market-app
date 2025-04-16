@@ -21,3 +21,14 @@ export PATH="/usr/local/opt/libpq/bin:$PATH"
 export LDFLAGS="-L/usr/local/opt/libpq/lib"
 export CPPFLAGS="-I/usr/local/opt/libpq/include"
 export PKG_CONFIG_PATH="/usr/local/opt/libpq/lib/pkgconfig"
+
+# Added environment variables for Android SDK tools package
+
+export ANDROID_HOME=~/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+
+# Added environment variables for JAVA_HOME tools package
+
+export JAVA_HOME=$(/usr/libexec/java_home)
+export PATH=$JAVA_HOME/bin:$PATH
