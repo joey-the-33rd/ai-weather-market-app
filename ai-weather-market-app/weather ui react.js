@@ -1,65 +1,98 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+// src/App.jsx
+import React, { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
-export default function WeatherApp() {
-  const [city, setCity] = useState('Nairobi');
-  const [weather, setWeather] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+export default function App() {
+  const [location, setLocation] = useState("");
+  const [forecastData, setForecastData] = useState([]);
 
-  const fetchWeather = async () => {
-    setLoading(true);
-    setError(null);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!location) return;
+
     try {
-      const res = await axios.get(`/weather?city=${encodeURIComponent(city)}`);
-      const data = res?.data;
-
-      if (
-        data &&
-        typeof data === 'object' &&
-        'city' in data &&
-        'temperature_c' in data &&
-        typeof data.temperature_c === 'number'
-      ) {
-        setWeather(data);
-      } else {
-        throw new Error('Invalid data format received');
-      }
-    } catch (err) {
-      setError('Unable to fetch weather data');
-      console.error('Error fetching weather:', err?.response?.data || err.message || err);
-    } finally {
-      setLoading(false);
+      const response = await fetch(`/api/weather?location=${encodeURIComponent(location)}`);
+      const data = await response.json();
+      setForecastData(data);
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-200 to-green-100 p-4">
-      <h1 className="text-3xl font-bold mb-6">Kenyan Weather Predictor</h1>
-      <div className="bg-white shadow-xl rounded-2xl p-6 w-full max-w-md">
-        <input
-          type="text"
-          placeholder="Enter city (e.g. Nairobi)"
-          className="w-full p-2 mb-4 border rounded"
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-        />
-        <button
-          onClick={fetchWeather}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-        >
-          {loading ? 'Fetching...' : 'Get Weather'}
-        </button>
+    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-300 p-4">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold mb-4 text-center">Weather Forecast App</h1>
 
-        {error && <p className="text-red-500 mt-4">{error}</p>}
+        <form onSubmit={handleSubmit} className="flex gap-2 mb-6">
+          <Input
+            type="text"
+            placeholder="Enter location (e.g., Nairobi)"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+          />
+          <Button type="submit">Get Forecast</Button>
+        </form>
 
-        {weather && (
-          <div className="mt-6 text-gray-800">
-            <h2 className="text-xl font-semibold mb-2">{weather.city}, {weather.country}</h2>
-            <p><strong>Temperature:</strong> {weather.temperature_c} °C</p>
-            <p><strong>Humidity:</strong> {weather.humidity}%</p>
-            <p><strong>Condition:</strong> {weather.condition}</p>
-          </div>
+        {forecastData.length > 0 && (
+          <>
+            <Card className="mb-6">
+              <CardContent>
+                <h2 className="text-xl font-semibold mb-4">Temperature Forecast</h2>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={forecastData}>
+                    <XAxis dataKey="recorded_at" tickFormatter={(str) => new Date(str).toLocaleDateString()} />
+                    <YAxis unit="°C" />
+                    <Tooltip labelFormatter={(label) => new Date(label).toLocaleString()} />
+                    <Line type="monotone" dataKey="temperature_c" stroke="#8884d8" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent>
+                <h2 className="text-xl font-semibold mb-4">Forecast Details</h2>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm text-left">
+                    <thead>
+                      <tr>
+                        <th className="px-2 py-1">Date</th>
+                        <th className="px-2 py-1">City</th>
+                        <th className="px-2 py-1">Lat</th>
+                        <th className="px-2 py-1">Lon</th>
+                        <th className="px-2 py-1">Temp (°C)</th>
+                        <th className="px-2 py-1">Humidity (%)</th>
+                        <th className="px-2 py-1">Wind (km/h)</th>
+                        <th className="px-2 py-1">Pressure (hPa)</th>
+                        <th className="px-2 py-1">Precip (mm)</th>
+                        <th className="px-2 py-1">Condition</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {forecastData.map((entry, index) => (
+                        <tr key={index} className="odd:bg-white even:bg-gray-100">
+                          <td className="px-2 py-1">{new Date(entry.recorded_at).toLocaleString()}</td>
+                          <td className="px-2 py-1">{entry.city}</td>
+                          <td className="px-2 py-1">{entry.latitude}</td>
+                          <td className="px-2 py-1">{entry.longitude}</td>
+                          <td className="px-2 py-1">{entry.temperature_c}</td>
+                          <td className="px-2 py-1">{entry.humidity_percent}</td>
+                          <td className="px-2 py-1">{entry.wind_speed_kmh}</td>
+                          <td className="px-2 py-1">{entry.pressure_hpa}</td>
+                          <td className="px-2 py-1">{entry.precipitation_mm}</td>
+                          <td className="px-2 py-1">{entry.weather_condition}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </>
         )}
       </div>
     </div>
