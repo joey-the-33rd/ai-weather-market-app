@@ -29,4 +29,7 @@ api_counter.json
 *.pkl
 *.h5
 scaler.save
+node_modules
+.env
+
 
