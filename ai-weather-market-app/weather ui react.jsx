@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, BarChart, Bar } from "recharts";
 
 export default function App() {
   const [location, setLocation] = useState("");
@@ -13,6 +13,8 @@ export default function App() {
   const [searchHistory, setSearchHistory] = useState(() => {
     return JSON.parse(localStorage.getItem("searchHistory")) || [];
   });
+  const [darkMode, setDarkMode] = useState(false);
+  const [chartType, setChartType] = useState("line");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,8 +36,11 @@ export default function App() {
     }
   };
 
+  const ChartComponent = chartType === "bar" ? BarChart : LineChart;
+  const TempComponent = chartType === "bar" ? Bar : Line;
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-blue-300 p-4">
+    <div className={`${darkMode ? "bg-gray-900 text-white" : "bg-gradient-to-b from-blue-100 to-blue-300 text-black"} min-h-screen p-4`}>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-4 text-center">Weather Forecast App</h1>
 
@@ -56,6 +61,13 @@ export default function App() {
           </select>
           <Button type="submit">Get Forecast</Button>
         </form>
+
+        <div className="flex justify-between items-center mb-4">
+          <div className="space-x-2">
+            <Button onClick={() => setChartType(chartType === "line" ? "bar" : "line")}>Toggle Chart</Button>
+            <Button onClick={() => setDarkMode(!darkMode)}>{darkMode ? "Light Mode" : "Dark Mode"}</Button>
+          </div>
+        </div>
 
         {searchHistory.length > 0 && (
           <div className="mb-4">
@@ -86,15 +98,15 @@ export default function App() {
               <CardContent>
                 <h2 className="text-xl font-semibold mb-4">Temperature & Humidity Forecast</h2>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={forecastData}>
+                  <ChartComponent data={forecastData}>
                     <XAxis dataKey="recorded_at" tickFormatter={(str) => new Date(str).toLocaleDateString()} />
                     <YAxis yAxisId="left" unit="°C" />
                     <YAxis yAxisId="right" orientation="right" unit="%" />
                     <Tooltip labelFormatter={(label) => new Date(label).toLocaleString()} />
                     <Legend />
-                    <Line yAxisId="left" type="monotone" dataKey="temperature_c" stroke="#8884d8" strokeWidth={2} name="Temperature (°C)" />
-                    <Line yAxisId="right" type="monotone" dataKey="humidity_percent" stroke="#82ca9d" strokeWidth={2} name="Humidity (%)" />
-                  </LineChart>
+                    <TempComponent yAxisId="left" type="monotone" dataKey="temperature_c" stroke="#8884d8" fill="#8884d8" strokeWidth={2} name="Temperature (°C)" />
+                    <TempComponent yAxisId="right" type="monotone" dataKey="humidity_percent" stroke="#82ca9d" fill="#82ca9d" strokeWidth={2} name="Humidity (%)" />
+                  </ChartComponent>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
