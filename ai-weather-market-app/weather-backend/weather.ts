@@ -10,8 +10,8 @@ dotenv.config();
 const router = express.Router();
 const cache = new NodeCache({ stdTTL: 600 }); // Cache for 10 minutes
 
-// Logging middleware
-router.use(morgan("combined"));
+// Note: Morgan logging middleware should be applied on the main Express app instance, not on this router.
+// router.use(morgan("combined"));
 
 // Rate limiting middleware
 const limiter = rateLimit({
@@ -51,8 +51,26 @@ router.get("/weather", async (req: Request, res: Response) => {
       ? forecast.forecastday[0].hour
       : forecast.forecastday.map((day: any) => ({ ...day.day, date: day.date }));
 
-    const parsedData = forecastEntries.map((entry: any) => ({
-      recorded_at: new Date(entry.time || entry.date).toISOString(),
+    interface ForecastEntry {
+      time?: string;
+      date?: string;
+      temp_c?: number;
+      avgtemp_c?: number;
+      humidity?: number;
+      avghumidity?: number;
+      wind_kph?: number;
+      maxwind_kph?: number;
+      pressure_mb?: number;
+      precip_mm?: number;
+      totalprecip_mm?: number;
+      condition?: {
+        text?: string;
+        icon?: string;
+      };
+    }
+
+    const parsedData = forecastEntries.map((entry: ForecastEntry) => ({
+      recorded_at: new Date(entry.time ?? entry.date ?? new Date().toISOString()).toISOString(),
       temperature_c: entry.temp_c || entry.avgtemp_c,
       humidity_percent: entry.humidity || entry.avghumidity,
       wind_speed_kmh: entry.wind_kph || entry.maxwind_kph,
