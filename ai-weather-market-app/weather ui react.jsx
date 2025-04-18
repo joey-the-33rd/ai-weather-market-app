@@ -7,6 +7,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "rec
 
 export default function App() {
   const [location, setLocation] = useState("");
+  const [mode, setMode] = useState("hourly");
   const [forecastData, setForecastData] = useState([]);
 
   const handleSubmit = async (e) => {
@@ -14,7 +15,7 @@ export default function App() {
     if (!location) return;
 
     try {
-      const response = await fetch(`/api/weather?location=${encodeURIComponent(location)}`);
+      const response = await fetch(`/api/weather?location=${encodeURIComponent(location)}&mode=${mode}`);
       const data = await response.json();
       setForecastData(data);
     } catch (error) {
@@ -27,13 +28,21 @@ export default function App() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-4 text-center">Weather Forecast App</h1>
 
-        <form onSubmit={handleSubmit} className="flex gap-2 mb-6">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-6">
           <Input
             type="text"
             placeholder="Enter location (e.g., Nairobi)"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
+          <select
+            value={mode}
+            onChange={(e) => setMode(e.target.value)}
+            className="border rounded px-2 py-1"
+          >
+            <option value="hourly">Hourly</option>
+            <option value="daily">Daily</option>
+          </select>
           <Button type="submit">Get Forecast</Button>
         </form>
 
@@ -82,9 +91,12 @@ export default function App() {
                           <td className="px-2 py-1">{entry.temperature_c}</td>
                           <td className="px-2 py-1">{entry.humidity_percent}</td>
                           <td className="px-2 py-1">{entry.wind_speed_kmh}</td>
-                          <td className="px-2 py-1">{entry.pressure_hpa}</td>
+                          <td className="px-2 py-1">{entry.pressure_hpa ?? "N/A"}</td>
                           <td className="px-2 py-1">{entry.precipitation_mm}</td>
-                          <td className="px-2 py-1">{entry.weather_condition}</td>
+                          <td className="px-2 py-1 flex items-center gap-2">
+                            <img src={`https:${entry.weather_icon}`} alt="icon" className="w-6 h-6" />
+                            {entry.weather_condition}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
