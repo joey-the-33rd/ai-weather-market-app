@@ -36,6 +36,20 @@ export default function App() {
     }
   };
 
+  const handleSearchHistoryClick = async (loc) => {
+    setLocation(loc);
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/weather?location=${encodeURIComponent(loc)}&mode=${mode}`);
+      const data = await response.json();
+      setForecastData(data);
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const ChartComponent = chartType === "bar" ? BarChart : LineChart;
   const TempComponent = chartType === "bar" ? Bar : Line;
 
@@ -76,7 +90,7 @@ export default function App() {
               {searchHistory.map((loc, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setLocation(loc)}
+                  onClick={() => handleSearchHistoryClick(loc)}
                   className="bg-white rounded px-3 py-1 shadow text-sm"
                 >
                   {loc}
