@@ -2,15 +2,37 @@
 import express from "express";
 import axios from "axios";
 import dotenv from "dotenv";
+import NodeCache from "node-cache";
+import rateLimit from "express-rate-limit";
+import morgan from "morgan";
 dotenv.config();
 
 const router = express.Router();
+const cache = new NodeCache({ stdTTL: 600 }); // Cache for 10 minutes
+
+// Logging middleware
+router.use(morgan("combined"));
+
+// Rate limiting middleware
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 30, // limit each IP to 30 requests per minute
+  message: "Too many requests from this IP, please try again later."
+});
+
+router.use("/weather", limiter);
 
 router.get("/weather", async (req, res) => {
   const { location, mode = "hourly" } = req.query;
 
   if (!location) {
     return res.status(400).json({ error: "Location is required" });
+  }
+
+  const cacheKey = `${location}_${mode}`;
+  const cachedData = cache.get(cacheKey);
+  if (cachedData) {
+    return res.json(cachedData);
   }
 
   try {
@@ -43,10 +65,13 @@ router.get("/weather", async (req, res) => {
       weather_icon: entry.condition?.icon || ""
     }));
 
+    cache.set(cacheKey, parsedData);
     res.json(parsedData);
   } catch (error) {
-    console.error("Error fetching weather data:", error.message);
-    res.status(500).json({ error: "Failed to fetch weather data." });
+    console.error("Error fetching weather data:", error);
+    const status = error.response?.status || 500;
+    const message = error.response?.data?.error?.message || "Failed to fetch weather data.";
+    res.status(status).json({ error: message });
   }
 });
 
