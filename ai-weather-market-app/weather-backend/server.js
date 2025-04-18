@@ -1,50 +1,53 @@
-const express = require('express');
-const app = express();
-const port = process.env.PORT || 3000;
+// backend/api/weather.js
+import express from "express";
+import axios from "axios";
+import dotenv from "dotenv";
+dotenv.config();
 
-app.use(express.json());
+const router = express.Router();
 
-app.get("/api/weather", async (req, res) => {
-    const { location, mode = "hourly" } = req.query;
-  
-    // ...same WeatherAPI request...
-  
-    let forecastData;
-    if (mode === "daily") {
-      forecastData = forecast.forecastday.map((day) => ({
-        city: loc.name,
-        latitude: loc.lat,
-        longitude: loc.lon,
-        recorded_at: day.date,
-        temperature_c: day.day.avgtemp_c,
-        humidity_percent: day.day.avghumidity,
-        wind_speed_kmh: day.day.maxwind_kph,
-        pressure_hpa: day.day.avgvis_km, // WeatherAPI doesn't give daily pressure directly
-        precipitation_mm: day.day.totalprecip_mm,
-        weather_condition: day.day.condition.text,
-        location: location,
-      }));
-    } else {
-      forecastData = forecast.forecastday.flatMap((day) =>
-        day.hour.map((hour) => ({
-          city: loc.name,
-          latitude: loc.lat,
-          longitude: loc.lon,
-          recorded_at: hour.time,
-          temperature_c: hour.temp_c,
-          humidity_percent: hour.humidity,
-          wind_speed_kmh: hour.wind_kph,
-          pressure_hpa: hour.pressure_mb,
-          precipitation_mm: hour.precip_mm,
-          weather_condition: hour.condition.text,
-          location: location,
-        }))
-      );
-    }
-  
-    res.json(forecastData);
-  });
+router.get("/weather", async (req, res) => {
+  const { location, mode = "hourly" } = req.query;
 
-app.listen(port, () => {
-  console.log(`Weather backend server running on port ${port}`);
+  if (!location) {
+    return res.status(400).json({ error: "Location is required" });
+  }
+
+  try {
+    const response = await axios.get(`http://api.weatherapi.com/v1/forecast.json`, {
+      params: {
+        key: process.env.WEATHER_API_KEY,
+        q: location,
+        days: mode === "daily" ? 7 : 1,
+        aqi: "no",
+        alerts: "no"
+      }
+    });
+
+    const { location: loc, forecast } = response.data;
+    const forecastEntries = mode === "hourly"
+      ? forecast.forecastday[0].hour
+      : forecast.forecastday.map(day => ({ ...day.day, date: day.date }));
+
+    const parsedData = forecastEntries.map(entry => ({
+      recorded_at: new Date(entry.time || entry.date).toISOString(),
+      temperature_c: entry.temp_c || entry.avgtemp_c,
+      humidity_percent: entry.humidity || entry.avghumidity,
+      wind_speed_kmh: entry.wind_kph || entry.maxwind_kph,
+      pressure_hpa: entry.pressure_mb || null,
+      precipitation_mm: entry.precip_mm || entry.totalprecip_mm,
+      city: loc.name,
+      latitude: loc.lat,
+      longitude: loc.lon,
+      weather_condition: entry.condition?.text || "",
+      weather_icon: entry.condition?.icon || ""
+    }));
+
+    res.json(parsedData);
+  } catch (error) {
+    console.error("Error fetching weather data:", error.message);
+    res.status(500).json({ error: "Failed to fetch weather data." });
+  }
 });
+
+export default router;
