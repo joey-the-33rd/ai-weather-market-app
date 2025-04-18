@@ -1,0 +1,16 @@
+{
+  "languages": [
+    { "name": "Other", "size_bytes": 1934203262 },
+    { "name": "Python", "size_bytes": 141323532 },
+    { "name": "JavaScript", "size_bytes": 125924545 },
+    { "name": "JSON", "size_bytes": 21592752 },
+    { "name": "TypeScript", "size_bytes": 17837203 },
+    { "name": "Markdown", "size_bytes": 14551001 },
+    { "name": "Text", "size_bytes": 2834413 },
+    { "name": "YAML", "size_bytes": 113800 },
+    { "name": "CSS", "size_bytes": 87692 },
+    { "name": "HTML", "size_bytes": 41139 },
+    { "name": "Shell", "size_bytes": 3805 },
+    { "name": "XML", "size_bytes": 3614 }
+  ]
+}
