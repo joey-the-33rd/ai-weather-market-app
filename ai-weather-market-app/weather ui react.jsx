@@ -3,23 +3,34 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 export default function App() {
   const [location, setLocation] = useState("");
   const [mode, setMode] = useState("hourly");
   const [forecastData, setForecastData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchHistory, setSearchHistory] = useState(() => {
+    return JSON.parse(localStorage.getItem("searchHistory")) || [];
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!location) return;
+    setLoading(true);
 
     try {
       const response = await fetch(`/api/weather?location=${encodeURIComponent(location)}&mode=${mode}`);
       const data = await response.json();
       setForecastData(data);
+
+      const newHistory = [location, ...searchHistory.filter((loc) => loc !== location)].slice(0, 5);
+      setSearchHistory(newHistory);
+      localStorage.setItem("searchHistory", JSON.stringify(newHistory));
     } catch (error) {
       console.error("Error fetching weather data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -28,7 +39,7 @@ export default function App() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-4 text-center">Weather Forecast App</h1>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-6">
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
           <Input
             type="text"
             placeholder="Enter location (e.g., Nairobi)"
@@ -46,17 +57,43 @@ export default function App() {
           <Button type="submit">Get Forecast</Button>
         </form>
 
-        {forecastData.length > 0 && (
+        {searchHistory.length > 0 && (
+          <div className="mb-4">
+            <p className="text-sm font-semibold mb-1">Recent Searches:</p>
+            <div className="flex flex-wrap gap-2">
+              {searchHistory.map((loc, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setLocation(loc)}
+                  className="bg-white rounded px-3 py-1 shadow text-sm"
+                >
+                  {loc}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {loading && (
+          <div className="text-center text-blue-700 font-medium mb-4">
+            Loading weather data...
+          </div>
+        )}
+
+        {!loading && forecastData.length > 0 && (
           <>
             <Card className="mb-6">
               <CardContent>
-                <h2 className="text-xl font-semibold mb-4">Temperature Forecast</h2>
+                <h2 className="text-xl font-semibold mb-4">Temperature & Humidity Forecast</h2>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={forecastData}>
                     <XAxis dataKey="recorded_at" tickFormatter={(str) => new Date(str).toLocaleDateString()} />
-                    <YAxis unit="°C" />
+                    <YAxis yAxisId="left" unit="°C" />
+                    <YAxis yAxisId="right" orientation="right" unit="%" />
                     <Tooltip labelFormatter={(label) => new Date(label).toLocaleString()} />
-                    <Line type="monotone" dataKey="temperature_c" stroke="#8884d8" strokeWidth={2} />
+                    <Legend />
+                    <Line yAxisId="left" type="monotone" dataKey="temperature_c" stroke="#8884d8" strokeWidth={2} name="Temperature (°C)" />
+                    <Line yAxisId="right" type="monotone" dataKey="humidity_percent" stroke="#82ca9d" strokeWidth={2} name="Humidity (%)" />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
