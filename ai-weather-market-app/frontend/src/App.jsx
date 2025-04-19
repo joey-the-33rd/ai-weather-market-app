@@ -31,12 +31,13 @@ export default function App() {
           />
           <UIButton onClick={fetchWeather}>Get Weather</UIButton>
           {weatherData && weatherData.length > 0 && (
-            <div style={{ marginTop: 20 }}>
-              <p>Temperature: {weatherData[0].temperature_c} °C</p>
-              <p>Humidity: {weatherData[0].humidity_percent} %</p>
-              <p>Condition: {weatherData[0].weather_condition}</p>
-            </div>
-          )}
+              <div style={{ marginTop: 20 }}>
+                <p>Temperature: {weatherData[0].temperature_c} °C</p>
+                <p>Humidity: {weatherData[0].humidity_percent} %</p>
+                <p>Condition: {weatherData[0].weather_condition}</p>
+              </div>
+)}
+
         </CardContent>
       </Card>
     </div>
