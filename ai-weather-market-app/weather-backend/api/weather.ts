@@ -86,12 +86,14 @@ router.get("/weather", async (req: Request, res: Response) => {
       pressure_hpa: entry.pressure_mb || null,
       precipitation_mm: entry.precip_mm || entry.totalprecip_mm,
       city: loc.name,
+      country: loc.country,
       latitude: loc.lat,
       longitude: loc.lon,
       weather_condition: entry.condition?.text || "",
       weather_icon: entry.condition?.icon || ""
     }));
 
+    console.log("Parsed weather data to send:", parsedData);
     cache.set(cacheKey, parsedData);
     console.log("Sending parsed weather data response");
     res.json(parsedData);
