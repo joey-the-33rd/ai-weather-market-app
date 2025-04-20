@@ -33,14 +33,15 @@ export default function WeatherApp() {
     try {
       const res = await axios.get(`/weather?city=${encodeURIComponent(city)}`);
       const data = res?.data;
+      console.log("Fetched weather data:", data);
 
       if (
-        data &&
-        typeof data === 'object' &&
-        data.city &&
-        typeof data.temperature_c === 'number'
+        Array.isArray(data) &&
+        data.length > 0 &&
+        data[0].city &&
+        typeof data[0].temperature_c === 'number'
       ) {
-        setWeather(data);
+        setWeather(data[0]);
       } else {
         throw new Error('Invalid data format received');
       }
@@ -118,14 +119,17 @@ export default function WeatherApp() {
 
         {error && <p className="text-red-500 mt-4">{error}</p>}
 
-        {weather && (
-          <motion.div className="mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-            <h2 className="text-xl font-semibold mb-2">{weather.city}, {weather.country}</h2>
-            <p><strong>Temperature:</strong> {weather.temperature_c} °C</p>
-            <p><strong>Humidity:</strong> {weather.humidity_percent}%</p>
-            <p><strong>Wind Speed:</strong> {weather.wind_speed_kmh} km/h</p>
-            <p><strong>Precipitation:</strong> {weather.precipitation_mm} mm</p>
-            <p><strong>Condition:</strong> {weather.weather_condition}</p>
+          {weather && (
+          <motion.div className="mt-6 p-4 border-2 border-blue-500 rounded-lg bg-blue-50 dark:bg-gray-700" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+            <h2 className="text-2xl font-bold mb-4 text-blue-700 dark:text-blue-300">{weather.city}, {weather.country}</h2>
+            <p className="text-lg mb-1"><span className="font-semibold">Temperature:</span> {weather.temperature_c} °C</p>
+            <p className="text-lg mb-1"><span className="font-semibold">Humidity:</span> {weather.humidity_percent}%</p>
+            <p className="text-lg mb-1"><span className="font-semibold">Wind Speed:</span> {weather.wind_speed_kmh} km/h</p>
+            <p className="text-lg mb-1"><span className="font-semibold">Precipitation:</span> {weather.precipitation_mm} mm</p>
+            <p className="text-lg mb-1"><span className="font-semibold">Pressure:</span> {weather.pressure_hpa} hPa</p>
+            <p className="text-lg mb-1"><span className="font-semibold">Latitude:</span> {weather.latitude}</p>
+            <p className="text-lg mb-1"><span className="font-semibold">Longitude:</span> {weather.longitude}</p>
+            <p className="text-lg mb-1"><span className="font-semibold">Condition:</span> {weather.weather_condition}</p>
           </motion.div>
         )}
 
