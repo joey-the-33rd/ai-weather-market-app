@@ -30,6 +30,11 @@ const limiter = rateLimit({
 router.use("/weather", limiter);
 
 router.get("/weather", async (req: Request, res: Response) => {
+  console.log("Received request to /weather with query:", req.query);
+  // existing code...
+});
+router.get("/weather", async (req: Request, res: Response) => {
+  console.log("Received request to /weather with query:", req.query);
   const { location, mode = "hourly" } = req.query as { location?: string; mode?: string };
 
   if (!location) {
@@ -39,6 +44,7 @@ router.get("/weather", async (req: Request, res: Response) => {
   const cacheKey = `${location}_${mode}`;
   const cachedData = cache.get(cacheKey);
   if (cachedData) {
+    console.log("Returning cached data for", cacheKey);
     return res.json(cachedData);
   }
 
@@ -46,6 +52,7 @@ router.get("/weather", async (req: Request, res: Response) => {
     if (!process.env.WEATHER_API_KEY) {
       throw new Error("WEATHER_API_KEY is not set");
     }
+    console.log("Fetching weather data from external API for location:", location);
     const response = await axios.get("http://api.weatherapi.com/v1/forecast.json", {
       params: {
         key: process.env.WEATHER_API_KEY,
@@ -55,6 +62,7 @@ router.get("/weather", async (req: Request, res: Response) => {
         alerts: "no"
       }
     });
+    console.log("Received response from external API");
 
     const { location: loc, forecast } = response.data;
     const forecastEntries = mode === "hourly"
@@ -94,6 +102,7 @@ router.get("/weather", async (req: Request, res: Response) => {
     }));
 
     cache.set(cacheKey, parsedData);
+    console.log("Sending parsed weather data response");
     res.json(parsedData);
   } catch (error: any) {
     console.error("Error fetching weather data:", error);
