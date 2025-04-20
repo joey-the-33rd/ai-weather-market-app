@@ -14,7 +14,7 @@ import {
 
 export default function WeatherApp() {
   const [city, setCity] = useState('Nairobi');
-  const [weather, setWeather] = useState(null);
+  const [weather, setWeather] = useState([]);
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -31,7 +31,7 @@ export default function WeatherApp() {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(`/weather?city=${encodeURIComponent(city)}`);
+      const res = await axios.get(`/api/weather?location=${encodeURIComponent(city)}`);
       const data = res?.data;
       console.log("Fetched weather data:", data);
 
@@ -41,7 +41,7 @@ export default function WeatherApp() {
         data[0].city &&
         typeof data[0].temperature_c === 'number'
       ) {
-        setWeather(data[0]);
+        setWeather(data);
       } else {
         throw new Error('Invalid data format received');
       }
@@ -119,18 +119,45 @@ export default function WeatherApp() {
 
         {error && <p className="text-red-500 mt-4">{error}</p>}
 
-          {weather && (
-          <motion.div className="mt-6 p-4 border-2 border-blue-500 rounded-lg bg-blue-50 dark:bg-gray-700" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
-            <h2 className="text-2xl font-bold mb-4 text-blue-700 dark:text-blue-300">{weather.city}, {weather.country}</h2>
-            <p className="text-lg mb-1"><span className="font-semibold">Temperature:</span> {weather.temperature_c} °C</p>
-            <p className="text-lg mb-1"><span className="font-semibold">Humidity:</span> {weather.humidity_percent}%</p>
-            <p className="text-lg mb-1"><span className="font-semibold">Wind Speed:</span> {weather.wind_speed_kmh} km/h</p>
-            <p className="text-lg mb-1"><span className="font-semibold">Precipitation:</span> {weather.precipitation_mm} mm</p>
-            <p className="text-lg mb-1"><span className="font-semibold">Pressure:</span> {weather.pressure_hpa} hPa</p>
-            <p className="text-lg mb-1"><span className="font-semibold">Latitude:</span> {weather.latitude}</p>
-            <p className="text-lg mb-1"><span className="font-semibold">Longitude:</span> {weather.longitude}</p>
-            <p className="text-lg mb-1"><span className="font-semibold">Condition:</span> {weather.weather_condition}</p>
-          </motion.div>
+          {weather.length > 0 && (
+          <>
+            {console.log("Current weather state:", weather)}
+            <motion.div className="mt-6 p-4 border-2 border-blue-500 rounded-lg bg-blue-50 dark:bg-gray-700" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+              <h2 className="text-2xl font-bold mb-4 text-blue-700 dark:text-blue-300">{weather[0].city}, {weather[0].country}</h2>
+              <div className="overflow-auto max-h-96">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="border-b border-blue-500 px-2 py-1">Time</th>
+                      <th className="border-b border-blue-500 px-2 py-1">Temp (°C)</th>
+                      <th className="border-b border-blue-500 px-2 py-1">Humidity (%)</th>
+                      <th className="border-b border-blue-500 px-2 py-1">Wind (km/h)</th>
+                      <th className="border-b border-blue-500 px-2 py-1">Precipitation (mm)</th>
+                      <th className="border-b border-blue-500 px-2 py-1">Pressure (hPa)</th>
+                      <th className="border-b border-blue-500 px-2 py-1">Latitude</th>
+                      <th className="border-b border-blue-500 px-2 py-1">Longitude</th>
+                      <th className="border-b border-blue-500 px-2 py-1">Condition</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {weather.map((w, index) => (
+                      <tr key={index} className="border-b border-blue-300">
+                        <td className="px-2 py-1">{new Date(w.recorded_at).toLocaleString()}</td>
+                        <td className="px-2 py-1">{w.temperature_c}</td>
+                        <td className="px-2 py-1">{w.humidity_percent}</td>
+                        <td className="px-2 py-1">{w.wind_speed_kmh}</td>
+                        <td className="px-2 py-1">{w.precipitation_mm ?? 'N/A'}</td>
+                        <td className="px-2 py-1">{w.pressure_hpa}</td>
+                        <td className="px-2 py-1">{w.latitude}</td>
+                        <td className="px-2 py-1">{w.longitude}</td>
+                        <td className="px-2 py-1">{w.weather_condition}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          </>
         )}
 
         {forecast && (
