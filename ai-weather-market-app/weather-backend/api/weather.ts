@@ -1,10 +1,10 @@
 // backend/api/weather.ts
+
 import express, { Request, Response } from "express";
 import axios from "axios";
 import dotenv from "dotenv";
 import NodeCache from "node-cache";
 import rateLimit from "express-rate-limit";
-import morgan from "morgan";
 dotenv.config();
 
 console.log("DEBUG: WEATHER_API_KEY =", process.env.WEATHER_API_KEY);
@@ -17,9 +17,6 @@ if (!process.env.WEATHER_API_KEY) {
 const router = express.Router();
 const cache = new NodeCache({ stdTTL: 600 }); // Cache for 10 minutes
 
-// Note: Morgan logging middleware should be applied on the main Express app instance, not on this router.
-// router.use(morgan("combined"));
-
 // Rate limiting middleware
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
@@ -29,10 +26,6 @@ const limiter = rateLimit({
 
 router.use("/weather", limiter);
 
-router.get("/weather", async (req: Request, res: Response) => {
-  console.log("Received request to /weather with query:", req.query);
-  // existing code...
-});
 router.get("/weather", async (req: Request, res: Response) => {
   console.log("Received request to /weather with query:", req.query);
   const { location, mode = "hourly" } = req.query as { location?: string; mode?: string };
@@ -49,9 +42,6 @@ router.get("/weather", async (req: Request, res: Response) => {
   }
 
   try {
-    if (!process.env.WEATHER_API_KEY) {
-      throw new Error("WEATHER_API_KEY is not set");
-    }
     console.log("Fetching weather data from external API for location:", location);
     const response = await axios.get("http://api.weatherapi.com/v1/forecast.json", {
       params: {
@@ -112,6 +102,5 @@ router.get("/weather", async (req: Request, res: Response) => {
     res.status(status).json({ error: message });
   }
 });
-
 
 export default router;
