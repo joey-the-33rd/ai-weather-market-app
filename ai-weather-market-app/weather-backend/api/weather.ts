@@ -60,7 +60,8 @@ router.get("/weather", async (req: Request, res: Response) => {
         days: mode === "daily" ? 7 : 1,
         aqi: "no",
         alerts: "no"
-      }
+      },
+      timeout: 10000 // 10 seconds timeout
     });
     console.log("Received response from external API");
 
@@ -107,9 +108,10 @@ router.get("/weather", async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Error fetching weather data:", error);
     const status = error.response?.status || 500;
-    const message = error.response?.data?.error?.message || "Failed to fetch weather data.";
+    const message = error.response?.data?.error?.message || error.message || "Failed to fetch weather data.";
     res.status(status).json({ error: message });
   }
 });
+
 
 export default router;
