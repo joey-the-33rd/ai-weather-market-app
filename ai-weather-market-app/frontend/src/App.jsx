@@ -5,6 +5,8 @@ import { Input } from "./components/ui/input";
 import { Button as UIButton } from "./components/ui/button";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
+import CustomTooltip from './components/CustomTooltip';
+
 
 export default function App() {
   const [location, setLocation] = useState("");
@@ -13,6 +15,7 @@ export default function App() {
     const stored = localStorage.getItem("darkMode");
     return stored ? JSON.parse(stored) : false;
   });
+  const [forecastView, setForecastView] = useState('hourly');
 
   useEffect(() => {
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
@@ -28,6 +31,39 @@ export default function App() {
       console.error("Error fetching weather data:", error);
     }
   };
+
+  const getWeatherEmoji = (condition) => {
+    if (condition.includes("Sunny")) return "☀️";
+    if (condition.includes("Rain")) return "🌧️";
+    if (condition.includes("Cloud")) return "☁️";
+    if (condition.includes("Storm")) return "🌩️";
+    return "🌡️";
+  };
+
+  const groupByDay = (data) => {
+    const groups = {};
+    data.forEach(item => {
+      const date = new Date(item.recorded_at).toLocaleDateString();
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(item);
+    });
+    return groups;
+  };
+
+  const computeDailyAverages = (groupedData) => {
+    return Object.entries(groupedData).map(([date, entries]) => {
+      const avgTemp = entries.reduce((sum, entry) => sum + entry.temperature_c, 0) / entries.length;
+      const avgHumidity = entries.reduce((sum, entry) => sum + entry.humidity_percent, 0) / entries.length;
+      const avgWind = entries.reduce((sum, entry) => sum + entry.wind_speed_kmh, 0) / entries.length;
+      return {
+        date,
+        avgTemp: avgTemp.toFixed(1),
+        avgHumidity: avgHumidity.toFixed(1),
+        avgWind: avgWind.toFixed(1)
+      };
+    });
+  };
+  
 
   const containerStyle = {
     padding: 20,
@@ -56,6 +92,9 @@ export default function App() {
               placeholder="Enter location"
             />
             <UIButton onClick={fetchWeather} style={{ marginTop: 10 }}>Get Weather</UIButton>
+            <UIButton onClick={() => setForecastView(forecastView === 'hourly' ? 'daily' : 'hourly')} style={{ marginTop: 10 }}>
+              Switch to {forecastView === 'hourly' ? 'Daily' : 'Hourly'} Forecast
+            </UIButton>
           </motion.div>
 
           {weatherData && weatherData.length > 0 && (
@@ -65,13 +104,57 @@ export default function App() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <h2>{weatherData[0].city}, {weatherData[0].country}</h2>
+              <h2 style={{ borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>{weatherData[0].city}, {weatherData[0].country}</h2>
+
+              <div style={{
+                display: 'flex',
+                gap: '20px',
+                flexWrap: 'wrap',
+                backgroundColor: darkMode ? '#1e1e1e' : '#e0f7fa',
+                padding: '15px',
+                borderRadius: '12px',
+                marginBottom: '20px',
+                justifyContent: 'space-around',
+                fontSize: '1.1rem',
+              }}>
+                <div><strong>🌡️ Temperature:</strong> {weatherData[0].temperature_c}°C</div>
+                <div><strong>💧 Humidity:</strong> {weatherData[0].humidity_percent}%</div>
+                <div><strong>📍 Condition:</strong> {getWeatherEmoji(weatherData[0].weather_condition)} {weatherData[0].weather_condition}</div>
+                <div><strong>🌬️ Wind:</strong> {weatherData[0].wind_speed_kmh} km/h</div>
+                <div><strong>🌫️ Pressure:</strong> {weatherData[0].pressure_hpa} hPa</div>
+                <div><strong>🔆 UV Index:</strong> {weatherData[0].uv_index ?? 'N/A'}</div>
+                <div><strong>🏭 Air Quality:</strong> {weatherData[0].air_quality_index ?? 'N/A'}</div>
+              </div>
+
+              <h3 style={{ marginTop: 30 }}>📈 Weekly Summary</h3>
+              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 10 }}>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Avg Temp (°C)</th>
+                    <th>Avg Humidity (%)</th>
+                    <th>Avg Wind (km/h)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {computeDailyAverages(groupByDay(weatherData)).map((summary, index) => (
+                    <tr key={index}>
+                      <td>{summary.date}</td>
+                      <td>{summary.avgTemp}</td>
+                      <td>{summary.avgHumidity}</td>
+                      <td>{summary.avgWind}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={weatherData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="recorded_at" tickFormatter={(time) => new Date(time).toLocaleTimeString()} />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip content={<CustomTooltip />} />
+
                   <Legend />
                   <Line type="monotone" dataKey="temperature_c" stroke="#8884d8" name="Temp (°C)" />
                   <Line type="monotone" dataKey="humidity_percent" stroke="#82ca9d" name="Humidity (%)" />
@@ -92,6 +175,8 @@ export default function App() {
                     <th>Latitude</th>
                     <th>Longitude</th>
                     <th>Condition</th>
+                    <th>UV Index</th>
+                    <th>Air Quality</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -105,11 +190,48 @@ export default function App() {
                       <td>{w.pressure_hpa}</td>
                       <td>{w.latitude}</td>
                       <td>{w.longitude}</td>
-                      <td>{w.weather_condition}</td>
+                      <td>{getWeatherEmoji(w.weather_condition)} {w.weather_condition}</td>
+                      <td>{w.uv_index ?? 'N/A'}</td>
+                      <td>{w.air_quality_index ?? 'N/A'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+
+              {forecastView === 'hourly' ? (
+                <>
+                  <h3 style={{ marginTop: 30 }}>📆 3-Day Forecast (Hourly Breakdown)</h3>
+                  {Object.entries(groupByDay(weatherData)).slice(0, 3).map(([day, data]) => (
+                    <div key={day} style={{ marginTop: 20, padding: 10, border: '1px solid #ccc', borderRadius: 10 }}>
+                      <h4>{day}</h4>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="recorded_at" tickFormatter={(time) => new Date(time).toLocaleTimeString()} />
+                          <YAxis />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Legend />
+                          <Line type="monotone" dataKey="temperature_c" stroke="#8884d8" name="Temp (°C)" />
+                          <Line type="monotone" dataKey="humidity_percent" stroke="#82ca9d" name="Humidity (%)" />
+                          <Line type="monotone" dataKey="wind_speed_kmh" stroke="#ffc658" name="Wind (km/h)" />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <h3 style={{ marginTop: 30 }}>📆 3-Day Forecast (Daily Averages)</h3>
+                  {computeDailyAverages(groupByDay(weatherData)).map((dayData) => (
+                    <div key={dayData.date} style={{ marginTop: 20, padding: 10, border: '1px solid #ccc', borderRadius: 10 }}>
+                      <h4>{dayData.date}</h4>
+                      <p>Average Temperature: {dayData.avgTemp} °C</p>
+                      <p>Average Humidity: {dayData.avgHumidity} %</p>
+                      <p>Average Wind Speed: {dayData.avgWind} km/h</p>
+                    </div>
+                  ))}
+                </>
+              )}
             </motion.div>
           )}
         </CardContent>
