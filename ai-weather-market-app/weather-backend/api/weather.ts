@@ -48,7 +48,7 @@ router.get("/weather", async (req: Request, res: Response) => {
         key: process.env.WEATHER_API_KEY,
         q: location,
         days: mode === "daily" ? 7 : 1,
-        aqi: "no",
+        aqi: "yes",
         alerts: "no"
       },
       timeout: 10000 // 10 seconds timeout
@@ -76,6 +76,10 @@ router.get("/weather", async (req: Request, res: Response) => {
         text?: string;
         icon?: string;
       };
+      uv?: number;
+      air_quality?: {
+        us_epa_index?: number;
+      };
     }
 
     const parsedData = forecastEntries.map((entry: ForecastEntry) => ({
@@ -90,7 +94,9 @@ router.get("/weather", async (req: Request, res: Response) => {
       latitude: loc.lat,
       longitude: loc.lon,
       weather_condition: entry.condition?.text || "",
-      weather_icon: entry.condition?.icon || ""
+      weather_icon: entry.condition?.icon || "",
+      uv_index: entry.uv ?? null,
+      air_quality_index: entry.air_quality?.us_epa_index ?? null
     }));
 
     console.log("Parsed weather data to send:", parsedData);
