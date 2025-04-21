@@ -5,7 +5,7 @@ import { Input } from "./components/ui/input";
 import { Button as UIButton } from "./components/ui/button";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
-import CustomTooltip from './components/CustomTooltip';
+import CustomTooltip from './components/ui/CustomTooltip';
 
 
 export default function App() {
@@ -24,7 +24,7 @@ export default function App() {
   const fetchWeather = async () => {
     try {
       const response = await axios.get("/api/weather", {
-        params: { location }
+        params: { location, mode: forecastView }
       });
       setWeatherData(response.data);
     } catch (error) {
@@ -70,7 +70,32 @@ export default function App() {
     backgroundColor: darkMode ? '#121212' : '#f5f5f5',
     color: darkMode ? '#fff' : '#000',
     minHeight: '100vh',
-    transition: 'background-color 0.3s ease, color 0.3s ease'
+    transition: 'background-color 0.3s ease, color 0.3s ease',
+    maxWidth: '100%',
+    boxSizing: 'border-box'
+  };
+
+  const responsiveTableStyle = {
+    width: '100%',
+    borderCollapse: 'collapse',
+    marginTop: 10,
+    overflowX: 'auto',
+    display: 'block'
+  };
+
+  const responsiveDivStyle = {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '10px',
+    justifyContent: 'space-around',
+    fontSize: '1rem'
+  };
+
+  const buttonStyle = {
+    marginTop: 10,
+    padding: '10px 15px',
+    fontSize: '1rem',
+    minWidth: '120px'
   };
 
   return (
@@ -91,8 +116,8 @@ export default function App() {
               onChange={(e) => setLocation(e.target.value)}
               placeholder="Enter location"
             />
-            <UIButton onClick={fetchWeather} style={{ marginTop: 10 }}>Get Weather</UIButton>
-            <UIButton onClick={() => setForecastView(forecastView === 'hourly' ? 'daily' : 'hourly')} style={{ marginTop: 10 }}>
+            <UIButton onClick={fetchWeather} style={buttonStyle}>Get Weather</UIButton>
+            <UIButton onClick={() => setForecastView(forecastView === 'hourly' ? 'daily' : 'hourly')} style={buttonStyle}>
               Switch to {forecastView === 'hourly' ? 'Daily' : 'Hourly'} Forecast
             </UIButton>
           </motion.div>
@@ -105,17 +130,16 @@ export default function App() {
               transition={{ duration: 0.5 }}
             >
               <h2 style={{ borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>{weatherData[0].city}, {weatherData[0].country}</h2>
+              <h3 style={{ marginTop: 20, marginBottom: 10 }}>
+                {forecastView === 'hourly' ? 'Hourly Forecast' : 'Daily Forecast'}
+              </h3>
 
               <div style={{
-                display: 'flex',
-                gap: '20px',
-                flexWrap: 'wrap',
+                ...responsiveDivStyle,
                 backgroundColor: darkMode ? '#1e1e1e' : '#e0f7fa',
                 padding: '15px',
                 borderRadius: '12px',
                 marginBottom: '20px',
-                justifyContent: 'space-around',
-                fontSize: '1.1rem',
               }}>
                 <div><strong>🌡️ Temperature:</strong> {weatherData[0].temperature_c}°C</div>
                 <div><strong>💧 Humidity:</strong> {weatherData[0].humidity_percent}%</div>
@@ -127,7 +151,7 @@ export default function App() {
               </div>
 
               <h3 style={{ marginTop: 30 }}>📈 Weekly Summary</h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 10 }}>
+              <table style={responsiveTableStyle}>
                 <thead>
                   <tr>
                     <th>Date</th>
@@ -151,14 +175,13 @@ export default function App() {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={weatherData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="recorded_at" tickFormatter={(time) => new Date(time).toLocaleTimeString()} />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-
-                  <Legend />
-                  <Line type="monotone" dataKey="temperature_c" stroke="#8884d8" name="Temp (°C)" />
-                  <Line type="monotone" dataKey="humidity_percent" stroke="#82ca9d" name="Humidity (%)" />
-                  <Line type="monotone" dataKey="wind_speed_kmh" stroke="#ffc658" name="Wind (km/h)" />
+                          <XAxis dataKey="recorded_at" tickFormatter={(time) => new Date(time).toLocaleTimeString()} />
+                          <YAxis />
+                          <Tooltip content={<CustomTooltip darkMode={darkMode} />} />
+                          <Legend />
+                          <Line type="monotone" dataKey="temperature_c" stroke="#8884d8" name="Temp (°C)" />
+                          <Line type="monotone" dataKey="humidity_percent" stroke="#82ca9d" name="Humidity (%)" />
+                          <Line type="monotone" dataKey="wind_speed_kmh" stroke="#ffc658" name="Wind (km/h)" />
                   <Line type="monotone" dataKey="precipitation_mm" stroke="#ff7300" name="Precipitation (mm)" />
                 </LineChart>
               </ResponsiveContainer>
@@ -209,7 +232,7 @@ export default function App() {
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="recorded_at" tickFormatter={(time) => new Date(time).toLocaleTimeString()} />
                           <YAxis />
-                          <Tooltip content={<CustomTooltip />} />
+                          <Tooltip content={<CustomTooltip darkMode={darkMode} />} />
                           <Legend />
                           <Line type="monotone" dataKey="temperature_c" stroke="#8884d8" name="Temp (°C)" />
                           <Line type="monotone" dataKey="humidity_percent" stroke="#82ca9d" name="Humidity (%)" />
