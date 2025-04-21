@@ -1,14 +1,16 @@
 // src/components/CustomTooltip.jsx
 import React from 'react';
 
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, darkMode }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
       <div style={{
-        backgroundColor: '#fff',
+        backgroundColor: darkMode ? '#333' : '#fff',
+        color: darkMode ? '#fff' : '#000',
         padding: '10px',
-        border: '1px solid #ccc',
+        border: '1px solid',
+        borderColor: darkMode ? '#555' : '#ccc',
         borderRadius: '5px'
       }}>
         <p><strong>{new Date(label).toLocaleString()}</strong></p>
