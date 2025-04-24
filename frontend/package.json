@@ -5,17 +5,35 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eject": "react-scripts eject"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-scripts": "^5.0.1"
+    "@babel/runtime": "^7.27.0",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.16",
+    "axios": "^1.8.4",
+    "babel-loader": "^10.0.0",
+    "clsx": "^2.1.1",
+    "html-webpack-plugin": "^5.6.3",
+    "lodash": "^4.17.21",
+    "motion-dom": "^12.8.0",
+    "motion-utils": "^12.7.5",
+    "webpack-dev-server": "^5.2.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
