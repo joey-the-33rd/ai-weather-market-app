@@ -157,6 +157,47 @@ def insert_weather_data(records):
             cursor.close()
             conn.close()
 
+# New function to fetch and insert latest weather data every interval seconds
+def fetch_and_insert_realtime_weather(city="Nairobi", interval=300):
+    while True:
+        url = f"http://api.weatherapi.com/v1/current.json"
+        params = {
+            "key": WEATHERAPI_KEY,
+            "q": city
+        }
+        try:
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            record = {
+                "city": data["location"]["name"],
+                "country": data["location"]["country"][:2],
+                "latitude": data["location"]["lat"],
+                "longitude": data["location"]["lon"],
+                "recorded_at": datetime.strptime(data["location"]["localtime"], "%Y-%m-%d %H:%M"),
+                "temperature_c": data["current"]["temp_c"],
+                "humidity_percent": data["current"]["humidity"],
+                "wind_speed_kmh": data["current"]["wind_kph"],
+                "pressure_hpa": data["current"]["pressure_mb"],
+                "precipitation_mm": data["current"]["precip_mm"],
+                "wind_direction_deg": data["current"]["wind_degree"],
+                "uv_index": data["current"].get("uv", None),
+                "air_quality_index": None,
+                "weather_condition": data["current"]["condition"]["text"],
+                "cloud_cover_percent": data["current"].get("cloud", None),
+                "visibility_km": data["current"].get("vis_km", None),
+                "dew_point_c": None,
+                "solar_radiation_w_m2": None,
+                "sunrise_time": None,
+                "sunset_time": None
+            }
+            insert_weather_data([record])
+            print(f"✅ Inserted real-time weather data for {city} at {record['recorded_at']}")
+        except Exception as e:
+            print(f"❌ Error fetching real-time data: {e}")
+
+        time.sleep(interval)
+
 # Main function to fetch and insert historical data with rate limiting
 def main():
     start_date = datetime(2023, 1, 1)
