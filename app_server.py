@@ -8,7 +8,16 @@ import json
 # Load environment variables explicitly from the .env file in ai-weather-market-app directory
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), 'ai-weather-market-app', '.env'))
 
+import h2o
+from h2o.estimators.automl import H2OAutoML
+import json
+
 app = Flask(__name__)
+
+# Initialize H2O and load the trained model at startup
+h2o.init()
+model_path = os.path.join(os.path.dirname(__file__), 'ai-weather-market-app', 'models', 'h2o_automl_model')
+model = h2o.load_model(model_path)
 
 @app.route('/', methods=['GET'])
 def root():
