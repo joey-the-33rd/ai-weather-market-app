@@ -1,9 +1,9 @@
-import requests # type: ignore
-from time_utils import time_to_seconds
+import requests
 
 def test_predict():
     url = "http://localhost:5000/predict"
     payload = {
+        "weather_condition": "Clear",
         "humidity_percent": 75,
         "wind_speed_kmh": 15,
         "pressure_hpa": 1013,
@@ -11,13 +11,10 @@ def test_predict():
         "wind_direction_deg": 180,
         "uv_index": 3,
         "air_quality_index": 42,
-        "weather_condition": "Clear",
         "cloud_cover_percent": 20,
         "visibility_km": 10,
         "dew_point_c": 12,
-        "solar_radiation_w_m2": 200,
-        "sunrise_time": time_to_seconds("06:30:00"),
-        "sunset_time": time_to_seconds("19:45:00")
+        "solar_radiation_w_m2": 200
     }
 
     response = requests.post(url, json=payload)
