@@ -28,8 +28,54 @@ def predict():
         if not input_data:
             return jsonify({"error": "No input data provided"}), 400
 
-        # Convert input JSON to H2OFrame
-        hf = h2o.H2OFrame([input_data])
+        # Convert input JSON to H2OFrame with explicit column order and types
+        # Define expected columns in the order the model expects
+        expected_columns = [
+            "humidity_percent",
+            "wind_speed_kmh",
+            "pressure_hpa",
+            "precipitation_mm",
+            "wind_direction_deg",
+            "uv_index",
+            "air_quality_index",
+            "cloud_cover_percent",
+            "visibility_km",
+            "dew_point_c",
+            "solar_radiation_w_m2",
+            "weather_condition"
+        ]
+
+        # Create a list of dicts with all expected columns, filling missing with None
+        row = {}
+        for col in expected_columns:
+            row[col] = input_data.get(col, None)
+
+        import pandas as pd
+
+        # Create pandas DataFrame with expected columns
+        expected_columns = [
+            "humidity_percent",
+            "wind_speed_kmh",
+            "pressure_hpa",
+            "precipitation_mm",
+            "wind_direction_deg",
+            "uv_index",
+            "air_quality_index",
+            "cloud_cover_percent",
+            "visibility_km",
+            "dew_point_c",
+            "solar_radiation_w_m2",
+            "weather_condition"
+        ]
+        data_dict = {col: [input_data.get(col, None)] for col in expected_columns}
+
+        # Set weather_condition as categorical with correct categories
+        weather_condition_domain = model._model_json['output']['domains'][-1]  # last column domain
+        df = pd.DataFrame(data_dict)
+        df['weather_condition'] = pd.Categorical(df['weather_condition'], categories=weather_condition_domain)
+
+        # Convert pandas DataFrame to H2OFrame
+        hf = h2o.H2OFrame(df)
 
         # Predict using the loaded model
         prediction = model.predict(hf)
