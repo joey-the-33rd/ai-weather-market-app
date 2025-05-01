@@ -3,6 +3,8 @@
     "@types/morgan": "^1.9.9"
   },
   "dependencies": {
+    "@react-native-firebase/app": "^22.1.0",
+    "@react-native-firebase/messaging": "^22.1.0",
     "@react-oauth/google": "^0.12.1"
   }
 }
