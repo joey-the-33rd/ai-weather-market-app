@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Card, CardContent } from "./components/ui/card";
 import { Input } from "./components/ui/input";
@@ -13,16 +13,37 @@ const clientId = "YOUR_GOOGLE_OAUTH_CLIENT_ID";
 export default function App() {
   const [location, setLocation] = useState("");
   const [weatherData, setWeatherData] = useState(null);
+  const [prediction, setPrediction] = useState(null);
   const [darkMode, setDarkMode] = useState(() => {
     const stored = localStorage.getItem("darkMode");
     return stored ? JSON.parse(stored) : false;
   });
   const [forecastView, setForecastView] = useState('hourly');
   const [user, setUser] = useState(null);
+  const [liveUpdate, setLiveUpdate] = useState(false);
+  const intervalRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
   }, [darkMode]);
+
+  useEffect(() => {
+    if (liveUpdate) {
+      fetchWeather();
+      intervalRef.current = setInterval(() => {
+        fetchWeather();
+      }, 10000); // fetch every 10 seconds
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    }
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [liveUpdate, location, forecastView]);
 
   const fetchWeather = async () => {
     try {
@@ -30,8 +51,15 @@ export default function App() {
         params: { location, mode: forecastView }
       });
       setWeatherData(response.data);
+
+      // Fetch prediction from backend
+      if (response.data && response.data.length > 0) {
+        const latestData = response.data[0];
+        const predictionResponse = await axios.post("/predict", latestData);
+        setPrediction(predictionResponse.data.prediction);
+      }
     } catch (error) {
-      console.error("Error fetching weather data:", error);
+      console.error("Error fetching weather data or prediction:", error);
     }
   };
 
@@ -68,7 +96,6 @@ export default function App() {
   };
 
   const handleLoginSuccess = (credentialResponse) => {
-    // You can decode the credentialResponse.credential JWT token to get user info or send it to backend for verification
     setUser(credentialResponse);
   };
 
@@ -150,6 +177,9 @@ export default function App() {
               <UIButton onClick={() => setForecastView(forecastView === 'hourly' ? 'daily' : 'hourly')} style={buttonStyle}>
                 Switch to {forecastView === 'hourly' ? 'Daily' : 'Hourly'} Forecast
               </UIButton>
+              <UIButton onClick={() => setLiveUpdate(!liveUpdate)} style={buttonStyle}>
+                {liveUpdate ? "Stop Live Updates" : "Start Live Updates"}
+              </UIButton>
             </motion.div>
 
             {weatherData && weatherData.length > 0 && (
@@ -179,6 +209,20 @@ export default function App() {
                   <div><strong>🔆 UV Index:</strong> {weatherData[0].uv_index ?? 'N/A'}</div>
                   <div><strong>🏭 Air Quality:</strong> {weatherData[0].air_quality_index ?? 'N/A'}</div>
                 </div>
+
+                {prediction !== null && (
+                  <div style={{
+                    ...responsiveDivStyle,
+                    backgroundColor: darkMode ? '#2e2e2e' : '#d0f0c0',
+                    padding: '15px',
+                    borderRadius: '12px',
+                    marginBottom: '20px',
+                    fontWeight: 'bold',
+                    fontSize: '1.2rem'
+                  }}>
+                    AI Model Prediction: {prediction}
+                  </div>
+                )}
 
                 <h3 style={{ marginTop: 30 }}>📈 Weekly Summary</h3>
                 <table style={responsiveTableStyle}>
