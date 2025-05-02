@@ -1,10 +1,15 @@
 {
   "devDependencies": {
-    "@types/morgan": "^1.9.9"
+    "@types/morgan": "^1.9.9",
+    "@react-native-community/cli": "latest"
+
   },
   "dependencies": {
     "@react-native-firebase/app": "^22.1.0",
     "@react-native-firebase/messaging": "^22.1.0",
-    "@react-oauth/google": "^0.12.1"
+    "@react-oauth/google": "^0.12.1",
+    "axios": "^1.9.0",
+    "react-native-chart-kit": "^6.12.0",
+    "react-native-paper": "^5.14.0"
   }
 }
