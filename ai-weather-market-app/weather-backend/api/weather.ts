@@ -1,10 +1,10 @@
 // backend/api/weather.ts
+
 import express, { Request, Response } from "express";
 import axios from "axios";
 import dotenv from "dotenv";
 import NodeCache from "node-cache";
 import rateLimit from "express-rate-limit";
-import morgan from "morgan";
 dotenv.config();
 
 console.log("DEBUG: WEATHER_API_KEY =", process.env.WEATHER_API_KEY);
@@ -17,9 +17,6 @@ if (!process.env.WEATHER_API_KEY) {
 const router = express.Router();
 const cache = new NodeCache({ stdTTL: 600 }); // Cache for 10 minutes
 
-// Note: Morgan logging middleware should be applied on the main Express app instance, not on this router.
-// router.use(morgan("combined"));
-
 // Rate limiting middleware
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
@@ -30,6 +27,7 @@ const limiter = rateLimit({
 router.use("/weather", limiter);
 
 router.get("/weather", async (req: Request, res: Response) => {
+  console.log("Received request to /weather with query:", req.query);
   const { location, mode = "hourly" } = req.query as { location?: string; mode?: string };
 
   if (!location) {
@@ -39,22 +37,23 @@ router.get("/weather", async (req: Request, res: Response) => {
   const cacheKey = `${location}_${mode}`;
   const cachedData = cache.get(cacheKey);
   if (cachedData) {
+    console.log("Returning cached data for", cacheKey);
     return res.json(cachedData);
   }
 
   try {
-    if (!process.env.WEATHER_API_KEY) {
-      throw new Error("WEATHER_API_KEY is not set");
-    }
+    console.log("Fetching weather data from external API for location:", location);
     const response = await axios.get("http://api.weatherapi.com/v1/forecast.json", {
       params: {
         key: process.env.WEATHER_API_KEY,
         q: location,
         days: mode === "daily" ? 7 : 1,
-        aqi: "no",
+        aqi: "yes",
         alerts: "no"
-      }
+      },
+      timeout: 10000 // 10 seconds timeout
     });
+    console.log("Received response from external API");
 
     const { location: loc, forecast } = response.data;
     const forecastEntries = mode === "hourly"
@@ -77,6 +76,10 @@ router.get("/weather", async (req: Request, res: Response) => {
         text?: string;
         icon?: string;
       };
+      uv?: number;
+      air_quality?: {
+        us_epa_index?: number;
+      };
     }
 
     const parsedData = forecastEntries.map((entry: ForecastEntry) => ({
@@ -87,18 +90,23 @@ router.get("/weather", async (req: Request, res: Response) => {
       pressure_hpa: entry.pressure_mb || null,
       precipitation_mm: entry.precip_mm || entry.totalprecip_mm,
       city: loc.name,
+      country: loc.country,
       latitude: loc.lat,
       longitude: loc.lon,
       weather_condition: entry.condition?.text || "",
-      weather_icon: entry.condition?.icon || ""
+      weather_icon: entry.condition?.icon || "",
+      uv_index: entry.uv ?? null,
+      air_quality_index: entry.air_quality?.us_epa_index ?? null
     }));
 
+    console.log("Parsed weather data to send:", parsedData);
     cache.set(cacheKey, parsedData);
+    console.log("Sending parsed weather data response");
     res.json(parsedData);
   } catch (error: any) {
     console.error("Error fetching weather data:", error);
     const status = error.response?.status || 500;
-    const message = error.response?.data?.error?.message || "Failed to fetch weather data.";
+    const message = error.response?.data?.error?.message || error.message || "Failed to fetch weather data.";
     res.status(status).json({ error: message });
   }
 });
