@@ -5,7 +5,7 @@
 # Displays count of changes committed successfully and failed commits
 # Limits commit to 150000 files per run
 
-MAX_FILES=150000
+MAX_FILES=10
 
 # Get list of modified files
 modified_files=$(git status --porcelain | grep -E '^[ M]' | awk '{print $2}')
