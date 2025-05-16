@@ -32,4 +32,5 @@ scaler.save
 node_modules
 .env
 
-
+# sh scripts
+*.sh
