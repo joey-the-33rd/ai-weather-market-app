@@ -1,6 +1,45 @@
+# Mobile App Setup
+
+This directory contains the React Native mobile app project.
+
+To create a new React Native app with Android support (including Gradle build files), follow these steps:
+
+1. Ensure you have Node.js, npm/yarn, and React Native CLI installed.
+2. Run the following command to create a new React Native app:
+
+```bash
+npx react-native init MobileApp
+```
+
+3. This will create a new directory `MobileApp` with Android and iOS native projects, including Gradle files for Android.
+4. Navigate to the `MobileApp` directory and run the app on Android emulator or device:
+
+```bash
+cd MobileApp
+npx react-native run-android
+```
+
+5. You can then modify the `App.js` file inside the `MobileApp` directory to integrate live data and predictions from your backend.
+
+---
+
+## Additional Notes from mobile-app/README.md
+
+This project previously had a placeholder directory `mobile-app/` with minimal content. The full React Native app is now located in this `MobileApp/` directory.
+
+The `mobile-app/` folder has been removed to avoid confusion and duplication.
+
+Please refer to this directory for all mobile app development and deployment.
+
+If you want me to help with any mobile app related tasks, please let me know.
+
+---
+
+## Original MobileApp/README.md content
+
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
-# Getting Started
+## Getting Started
 
 > **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
 
@@ -82,11 +121,11 @@ You've successfully run and modified your React Native App. :partying_face:
 - If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
 - If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
 
-# Troubleshooting
+## Troubleshooting
 
 If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
 
-# Learn More
+## Learn More
 
 To learn more about React Native, take a look at the following resources:
 
