@@ -1,0 +1,11 @@
+flask
+python-dotenv
+requests
+h2o
+numpy
+joblib
+tensorflow
+scikit-learn
+psycopg2-binary
+pandas
+pytz
