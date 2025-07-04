@@ -8,7 +8,7 @@ export default function App() {
 
   const fetchWeather = async () => {
     try {
-      const response = await axios.get(`http://your-backend-url/weather?city=${city}`);
+      const response = await axios.get(`/api/weather?city=${city}`);
       setWeather(response.data);
     } catch (error) {
       console.error("Error fetching weather:", error);
