@@ -6,16 +6,20 @@ import requests # type: ignore
 import json
 
 # Load environment variables explicitly from the .env file in ai-weather-market-app directory
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), 'ai-weather-market-app', '.env'))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
 import h2o
 import json
 
 app = Flask(__name__)
 
+@app.route('/')
+def home():
+    return "Welcome to the AI Weather Market App API. Use the /predict endpoint to get weather predictions."
+
 # Initialize H2O and load the trained model at startup
 h2o.init()
-model_path = os.path.join(os.path.dirname(__file__), 'ai-weather-market-app', 'models', 'h2o_automl_model', 'GLM_1_AutoML_1_20250425_144833')
+model_path = os.path.join(os.path.dirname(__file__), 'models', 'h2o_automl_model', 'GLM_1_AutoML_1_20250425_144833')
 model = h2o.load_model(model_path)
 
 @app.route('/predict', methods=['POST'])
@@ -27,6 +31,10 @@ def predict():
         input_data = request.get_json()
         if not input_data:
             return jsonify({"error": "No input data provided"}), 400
+
+        # If input_data is a list, take the first element
+        if isinstance(input_data, list):
+            input_data = input_data[0]
 
         # Convert input JSON to H2OFrame with explicit column order and types
         # Define expected columns in the order the model expects
@@ -50,6 +58,11 @@ def predict():
         for col in expected_columns:
             row[col] = input_data.get(col, None)
 
+        # Validate that no required field is None except weather_condition which can be None
+        for col in expected_columns:
+            if col != "weather_condition" and row[col] is None:
+                return jsonify({"error": f"Missing required field: {col}"}), 400
+
         import pandas as pd
 
         # Create pandas DataFrame with expected columns
@@ -70,9 +83,60 @@ def predict():
         data_dict = {col: [input_data.get(col, None)] for col in expected_columns}
 
         # Set weather_condition as categorical with correct categories
-        weather_condition_domain = model._model_json['output']['domains'][-1]  # last column domain
+        # Updated list of allowed weather_condition categories based on WeatherAPI.com
+        allowed_weather_conditions = [
+            "Sunny",
+            "Clear",
+            "Partly cloudy",
+            "Cloudy",
+            "Overcast",
+            "Mist",
+            "Patchy rain possible",
+            "Patchy snow possible",
+            "Patchy sleet possible",
+            "Patchy freezing drizzle possible",
+            "Thundery outbreaks possible",
+            "Blowing snow",
+            "Blizzard",
+            "Fog",
+            "Freezing fog",
+            "Patchy light drizzle",
+            "Light drizzle",
+            "Freezing drizzle",
+            "Heavy freezing drizzle",
+            "Patchy light rain",
+            "Light rain",
+            "Moderate rain at times",
+            "Moderate rain",
+            "Heavy rain at times",
+            "Heavy rain",
+            "Light freezing rain",
+            "Moderate or heavy freezing rain",
+            "Light sleet",
+            "Moderate or heavy sleet",
+            "Patchy light snow",
+            "Light snow",
+            "Patchy moderate snow",
+            "Moderate snow",
+            "Patchy heavy snow",
+            "Heavy snow",
+            "Ice pellets",
+            "Light rain shower",
+            "Moderate or heavy rain shower",
+            "Torrential rain shower",
+            "Light sleet showers",
+            "Moderate or heavy sleet showers",
+            "Light snow showers",
+            "Moderate or heavy snow showers",
+            "Light showers of ice pellets",
+            "Moderate or heavy showers of ice pellets",
+            "Patchy light rain with thunder",
+            "Moderate or heavy rain with thunder",
+            "Patchy light snow with thunder",
+            "Moderate or heavy snow with thunder"
+        ]
         df = pd.DataFrame(data_dict)
-        df['weather_condition'] = pd.Categorical(df['weather_condition'], categories=weather_condition_domain)
+        df['weather_condition'] = pd.Categorical(df['weather_condition'], categories=allowed_weather_conditions)
 
         # Convert pandas DataFrame to H2OFrame
         hf = h2o.H2OFrame(df)
