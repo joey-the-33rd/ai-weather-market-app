@@ -1,0 +1,1 @@
+pip install -f http://h2o-release.s3.amazonaws.com/h2o/latest_stable_Py.html h2o
