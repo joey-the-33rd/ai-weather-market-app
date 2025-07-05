@@ -18,6 +18,21 @@ Built with a full-stack architecture, the app combines **AI models**, **secure A
 
 ---
 
+## 🔄 Current State of the Project
+
+The project is actively under development with several core features implemented and functional:
+
+- Backend services built with Python, Flask, and FastAPI provide robust APIs for weather and market data.
+- AI models for weather prediction and crop market price forecasting are trained and integrated.
+- Credit scoring and blockchain smart contract modules are in progress to enhance financial services and contract automation.
+- Frontend development includes a React Native mobile app and a web frontend, both designed for accessibility and ease of use.
+- Database setup with PostgreSQL is configured and operational.
+- Documentation is maintained to support setup, API usage, AI model details, and contribution guidelines.
+
+Ongoing work focuses on improving model accuracy, expanding blockchain integration, and enhancing user experience across platforms.
+
+---
+
 ## 💻 Development Languages & Frameworks
 
 | Layer        | Technology Used                          |
