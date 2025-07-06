@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="ai-weather-market-app/Assets/ai-weather-app-logo.png" alt="AI Weather App" width="400">
+  <img src="Assets/ai-weather-app-logo.png" alt="AI Weather App" width="400">
 </p>
 
 # 🌦️ AI-Powered Weather & Market Prediction App
@@ -15,21 +15,6 @@ An AI-powered weather and market forecasting application designed to empower far
 - Emergency alerts and climate resilience insights
 
 Built with a full-stack architecture, the app combines **AI models**, **secure APIs**, **cloud deployment**, and a mobile-first frontend to deliver accurate, scalable, and accessible solutions.
-
----
-
-## 🔄 Current State of the Project
-
-The project is actively under development with several core features implemented and functional:
-
-- Backend services built with Python, Flask, and FastAPI provide robust APIs for weather and market data.
-- AI models for weather prediction and crop market price forecasting are trained and integrated.
-- Credit scoring and blockchain smart contract modules are in progress to enhance financial services and contract automation.
-- Frontend development includes a React Native mobile app and a web frontend, both designed for accessibility and ease of use.
-- Database setup with PostgreSQL is configured and operational.
-- Documentation is maintained to support setup, API usage, AI model details, and contribution guidelines.
-
-Ongoing work focuses on improving model accuracy, expanding blockchain integration, and enhancing user experience across platforms.
 
 ---
 
@@ -75,30 +60,28 @@ cd weather-ai-app
 pip install -r requirements.txt
 ```
 
-### 3. **Start Flask Server**
+### 3. **Configure Environment Variables**
+
+Create a `.env` file in the root directory (if not already present) and set the port for the Flask server:
+
+```
+PORT=4000
+```
+
+You can change the port number as needed. Suggested ports include 3000, 8000, 8080, 5000, 4000, 7000, 9000, and 8888. Ensure the port is above 1024 and not used by other services.
+
+### 4. **Start Flask Server**
 
 ```bash
-python app.py
+bash run_flask.sh
 ```
 
 ### 4. **Setup Frontend (React Native)**
 
-The React Native frontend is located in the `WeatherApp` directory.
-
-To set up and run the React Native app:
-
 ```bash
-cd WeatherApp
+cd frontend
 npm install
 npm start
-```
-
-This will start the Metro bundler. You can then run the app on an emulator or physical device using:
-
-```bash
-npm run android
-# or
-npm run ios
 ```
 
 ### 5. **Database Setup (PostgreSQL)**
@@ -114,12 +97,6 @@ Then:
 ```bash
 python setup_db.py
 ```
-
----
-
-## ⚠️ Note on ai-weather-market-app/App.js
-
-The `ai-weather-market-app/App.js` file contains React Native code and should not be run directly with Node.js. To run this code, use a React Native environment such as the one set up in the `WeatherApp` directory. It is recommended to move or integrate this code into the `WeatherApp` project for proper execution.
 
 ---
 
