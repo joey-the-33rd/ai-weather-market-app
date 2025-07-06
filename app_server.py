@@ -10,8 +10,10 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
 import h2o
 import json
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/')
 def home():
@@ -152,6 +154,27 @@ def predict():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/weather', methods=['GET'])
+def get_weather():
+    city = request.args.get('city')
+    if not city:
+        return jsonify({'error': 'City parameter is required'}), 400
+    # Mock weather data for demonstration
+    weather_data = {
+        'temperature': 25,
+        'humidity': 60,
+        'weather': 'Sunny',
+        'city': city
+    }
+    return jsonify(weather_data)
+
 if __name__ == '__main__':
-    port = int(os.getenv("PORT", 5000))
-    app.run(debug=True, port=port)
+    from dotenv import load_dotenv
+    load_dotenv()  # Load environment variables from .env file
+    import os
+    port_str = os.getenv("PORT", "5050")
+    try:
+        port = int(port_str)
+    except ValueError:
+        port = 5050
+    app.run(debug=True, host='0.0.0.0', port=port)
