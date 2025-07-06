@@ -1,23 +1,16 @@
 import React from 'react';
 
-export function Card({ children }) {
+export function Card({ children, className }) {
   return (
-    <div style={{
-      backgroundColor: '#fff',
-      borderRadius: '8px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      padding: '20px',
-      marginBottom: '20px',
-      boxSizing: 'border-box'
-    }}>
+    <div className={`bg-white shadow rounded p-4 ${className || ''}`}>
       {children}
     </div>
   );
 }
 
-export function CardContent({ children }) {
+export function CardContent({ children, className }) {
   return (
-    <div style={{ padding: '10px' }}>
+    <div className={`p-2 ${className || ''}`}>
       {children}
     </div>
   );
