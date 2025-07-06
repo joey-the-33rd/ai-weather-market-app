@@ -1,18 +1,13 @@
 import React from 'react';
 
-export function Input(props) {
+export function Input({ value, onChange, placeholder, type = "text", className }) {
   return (
     <input
-      {...props}
-      style={{
-        padding: '10px',
-        fontSize: '1rem',
-        borderRadius: '6px',
-        border: '1px solid #ccc',
-        width: '100%',
-        boxSizing: 'border-box',
-        marginBottom: '10px'
-      }}
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={`border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${className || ''}`}
     />
   );
 }
