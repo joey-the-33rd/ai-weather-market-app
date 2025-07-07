@@ -1,11 +1,11 @@
 #!/Users/melchizedekvii/Documents/GitHub/ai-weather-market-app/ai-weather-market-app/aiwma_env/bin/python3
-import psycopg2  # type: ignore
+import psycopg2  
 from datetime import datetime, timedelta
-import pytz  # type: ignore
-from dotenv import load_dotenv # type: ignore
+import pytz  
+from dotenv import load_dotenv
 import os
 import random
-import numpy as np  # type: ignore
+import numpy as np  
 import requests
 import time
 
@@ -20,58 +20,107 @@ DB_HOST = os.getenv("DB_HOST")
 DB_PORT = os.getenv("DB_PORT")
 WEATHERAPI_KEY = os.getenv("WEATHERAPI_KEY")
 
+if not WEATHERAPI_KEY:
+    print("❌ ERROR: WEATHERAPI_KEY is not set. Please set the WEATHERAPI_KEY environment variable or add it to your .env file.")
+    import sys
+    sys.exit(1)
+
 # Function to fetch historical weather data from weatherapi.com
 def fetch_historical_weather(date, city="Nairobi"):
-    url = f"http://api.weatherapi.com/v1/history.json"
+    """
+    Fetch historical weather data for a given date and city from weatherapi.com.
+
+    Args:
+        date (datetime): The date for which to fetch the historical weather data.
+        city (str, optional): The name of the city for which to fetch the data. Defaults to "Nairobi".
+
+    Returns:
+        dict: A dictionary containing the weather data if the request is successful, or None if there is an error.
+    """
+
+    url = f"https://api.weatherapi.com/v1/history.json"
     params = {
         "key": WEATHERAPI_KEY,
         "q": city,
         "dt": date.strftime("%Y-%m-%d")
     }
+    masked_params = params.copy()
+    if "key" in masked_params:
+        masked_params["key"] = "****"
+    print(f"DEBUG: Requesting URL: {url} with params: {masked_params}")
     try:
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
         return data
     except requests.RequestException as e:
-        print(f"Error fetching data for {date}: {e}")
+        if e.response is not None:
+            print(f"Error fetching data for {date}: {e} - Response content: {e.response.text}")
+        else:
+            print(f"Error fetching data for {date}: {e}")
         return None
 
 # Parse weatherapi.com response to match weather_data table schema
 def parse_weather_data(api_data):
-    if not api_data or "forecast" not in api_data:
+    """
+    Parse a weatherapi.com response into a dict matching the weather_data table schema.
+
+    Args:
+        api_data (dict): The JSON response from weatherapi.com.
+
+    Returns:
+        dict: A dictionary containing the parsed weather data, or None if the request is unsuccessful.
+    """
+
+    if not api_data or "forecast" not in api_data or "forecastday" not in api_data["forecast"] or len(api_data["forecast"]["forecastday"]) == 0:
         return None
-    forecast_day = api_data["forecast"]["forecastday"][0]
-    day = forecast_day["day"]
-    astro = forecast_day["astro"]
-    hour = forecast_day["hour"][12]  # Approx midday data
+    day_data = api_data["forecast"]["forecastday"][0]["day"]
+    astro_data = api_data["forecast"]["forecastday"][0].get("astro", {})
 
     record = {
-        "city": api_data["location"]["name"],
-        "country": api_data["location"]["country"][:2],  # Take first 2 chars as country code
-        "latitude": api_data["location"]["lat"],
-        "longitude": api_data["location"]["lon"],
-        "recorded_at": datetime.strptime(forecast_day["date"], "%Y-%m-%d"),
-        "temperature_c": day["avgtemp_c"],
-        "humidity_percent": day["avghumidity"],
-        "wind_speed_kmh": day["maxwind_kph"],
-        "pressure_hpa": hour.get("pressure_mb", None),
-        "precipitation_mm": day["totalprecip_mm"],
-        "wind_direction_deg": hour.get("wind_degree", None),
-        "uv_index": day.get("uv", None),
-        "air_quality_index": None,  # Not provided by weatherapi.com free tier
-        "weather_condition": day["condition"]["text"],
-        "cloud_cover_percent": hour.get("cloud", None),
-        "visibility_km": hour.get("vis_km", None),
-        "dew_point_c": None,  # Not provided
-        "solar_radiation_w_m2": None,  # Not provided
-        "sunrise_time": datetime.strptime(astro["sunrise"], "%I:%M %p").time(),
-        "sunset_time": datetime.strptime(astro["sunset"], "%I:%M %p").time()
+        "city": api_data.get("location", {}).get("name", "Unknown"),
+        "country": api_data.get("location", {}).get("country", None),
+        "latitude": api_data.get("location", {}).get("lat", None),
+        "longitude": api_data.get("location", {}).get("lon", None),
+-        "recorded_at": datetime.strptime(api_data.get("location", {}).get("localtime", date.strftime("%Y-%m-%d")), "%Y-%m-%d %H:%M"),
++        "recorded_at": datetime.strptime(api_data.get("location", {}).get("localtime", ""), "%Y-%m-%d %H:%M") if api_data.get("location", {}).get("localtime") else None,
+        "temperature_c": day_data.get("avgtemp_c", None),
+        "humidity_percent": day_data.get("avghumidity", None),
+        "wind_speed_kmh": day_data.get("maxwind_kph", None),
+        "pressure_hpa": day_data.get("pressure_mb", None),
+        "precipitation_mm": day_data.get("totalprecip_mm", None),
+        "wind_direction_deg": None,
+        "uv_index": day_data.get("uv", None),
+        "air_quality_index": None,
+        "weather_condition": day_data.get("condition", {}).get("text", None),
+        "cloud_cover_percent": None,
+        "visibility_km": None,
+        "dew_point_c": None,
+        "solar_radiation_w_m2": None,
+        "sunrise_time": datetime.strptime(astro_data.get("sunrise", "06:00 AM"), "%I:%M %p").time() if "sunrise" in astro_data else None,
+        "sunset_time": datetime.strptime(astro_data.get("sunset", "06:00 PM"), "%I:%M %p").time() if "sunset" in astro_data else None
     }
     return record
 
 # Connect and insert data
 def insert_weather_data(records):
+    """
+    Insert weather data records into the weather_data table.
+
+    Args:
+        records (list[dict]): A list of dictionaries containing the weather data records to be inserted.
+
+    Returns:
+        None
+
+    Raises:
+        Exception: If an error occurs while connecting to the database, creating the table, or inserting the records.
+
+    Notes:
+        - If the weather_data table does not exist, it will be created.
+        - The function will commit the records to the database if the insertion is successful.
+        - If an error occurs, the function will not commit the records and will close the database connection.
+    """
     try:
         conn = psycopg2.connect(
             dbname=DB_NAME,
@@ -159,8 +208,20 @@ def insert_weather_data(records):
 
 # New function to fetch and insert latest weather data every interval seconds
 def fetch_and_insert_realtime_weather(city="Nairobi", interval=300):
+    """
+    Continuously fetches and inserts real-time weather data for a specified city at regular intervals.
+
+    Args:
+        city (str): The name of the city for which to fetch the weather data. Defaults to "Nairobi".
+        interval (int): The time interval in seconds between each API call. Defaults to 300 seconds (5 minutes).
+
+    The function retrieves current weather data from weatherapi.com and inserts it into the weather_data table.
+    The insertion is performed repeatedly at the specified interval. The function handles any exceptions that
+    occur during data fetching and logs errors without stopping execution.
+    """
+
     while True:
-        url = f"http://api.weatherapi.com/v1/current.json"
+        url = f"https://api.weatherapi.com/v1/current.json"
         params = {
             "key": WEATHERAPI_KEY,
             "q": city
@@ -200,8 +261,19 @@ def fetch_and_insert_realtime_weather(city="Nairobi", interval=300):
 
 # Main function to fetch and insert historical data with rate limiting
 def main():
-    start_date = datetime(2023, 1, 1)
+    """
+    Main function to fetch and insert historical weather data from weatherapi.com.
+
+    Fetches historical data from 2023-01-01 to the current date for Nairobi, and inserts it into the weather_data table.
+
+    Rate limited to 1 API call per second to avoid hitting the free tier limit of 50 requests per day.
+
+    Inserts data in batches of 10 to reduce the number of database commits.
+
+    :return: None
+    """
     end_date = datetime.now()
+    start_date = end_date - timedelta(days=7)
     delta = timedelta(days=1)
     city = "Nairobi"
     records_to_insert = []
