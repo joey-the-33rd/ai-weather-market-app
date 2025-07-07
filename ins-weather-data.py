@@ -79,11 +79,10 @@ def parse_weather_data(api_data):
 
     record = {
         "city": api_data.get("location", {}).get("name", "Unknown"),
-        "country": api_data.get("location", {}).get("country", None),
+        "country": api_data.get("location", {}).get("country", "")[:2],
         "latitude": api_data.get("location", {}).get("lat", None),
         "longitude": api_data.get("location", {}).get("lon", None),
--        "recorded_at": datetime.strptime(api_data.get("location", {}).get("localtime", date.strftime("%Y-%m-%d")), "%Y-%m-%d %H:%M"),
-+        "recorded_at": datetime.strptime(api_data.get("location", {}).get("localtime", ""), "%Y-%m-%d %H:%M") if api_data.get("location", {}).get("localtime") else None,
+        "recorded_at": datetime.strptime(api_data.get("location", {}).get("localtime", ""), "%Y-%m-%d %H:%M") if api_data.get("location", {}).get("localtime") else None,
         "temperature_c": day_data.get("avgtemp_c", None),
         "humidity_percent": day_data.get("avghumidity", None),
         "wind_speed_kmh": day_data.get("maxwind_kph", None),
