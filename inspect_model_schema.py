@@ -3,6 +3,15 @@ import os
 
 def inspect_model_schema():
     # Initialize H2O
+    """
+    Inspects the schema of a model to determine the input columns and their respective domain values.
+
+    This function prints out the input columns and their respective domain values to the console.
+
+    Returns:
+        None
+    """
+    
     h2o.init()
 
     # Load the model
