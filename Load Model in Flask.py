@@ -17,6 +17,14 @@ model = tf.keras.models.load_model(model_path, compile=False)
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    """
+    Accepts a JSON payload with a 'features' key containing a list of 10 lists
+    of length 2. The first element of each sublist is the temperature in Celsius,
+    and the second element is the humidity percent.
+
+    Returns a JSON response with a 'predicted_temperature' key containing the
+    predicted temperature in Celsius.
+    """
     data = request.json
     input_data = np.array(data['features']).reshape(1, 10, 2)
     
