@@ -1,47 +1,11 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-.ipynb_checkpoints/
-*.pyc
-
-# Virtual environments
-env/
-venv/
-aiwma_env/
-
-# Environment variables
-.env
-
-# API counter cache
-api_counter.json
-
-# VSCode / IDE stuff
-.vscode/
-.idea/
-
-# Logs
-*.log
-
-# macOS
-.DS_Store
-
-# Others
-*.pkl
-*.h5
-scaler.save
-node_modules
-frontend/node_modules/
-uv.lock
-.env
-
-# sh scripts
-*.sh
-
-# Test and build caches
-.pytest_cache/
-coverage/
-.mypy_cache/
-.tox/
-.cache/
-*.egg-info/
+build/
+dist/
+*.js.map
+*.tsbuildinfo
+=======
+# JavaScript build artifacts
+build/
+dist/
+*.js.map
+*.tsbuildinfo
+.vite/
