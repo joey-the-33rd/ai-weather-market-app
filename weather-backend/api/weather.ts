@@ -7,10 +7,12 @@ import NodeCache from "node-cache";
 import rateLimit from "express-rate-limit";
 dotenv.config();
 
-console.log("DEBUG: WEATHER_API_KEY =", process.env.WEATHER_API_KEY);
 
-if (!process.env.WEATHER_API_KEY) {
-  console.error("ERROR: WEATHER_API_KEY is not set in environment variables.");
+console.log("DEBUG: WEATHERAPI_KEY =", process.env.WEATHERAPI_KEY);
+console.log("DEBUG: Loaded WEATHERAPI_KEY length:", process.env.WEATHERAPI_KEY ? process.env.WEATHERAPI_KEY.length : "undefined");
+
+if (!process.env.WEATHERAPI_KEY) {
+  console.error("ERROR: WEATHERAPI_KEY is not set in environment variables.");
   process.exit(1);
 }
 
@@ -45,11 +47,11 @@ router.get("/weather", async (req: Request, res: Response) => {
     console.log("Fetching weather data from external API for location:", location);
     const response = await axios.get("http://api.weatherapi.com/v1/forecast.json", {
       params: {
-        key: process.env.WEATHER_API_KEY,
+        key: process.env.WEATHERAPI_KEY,
         q: location,
         days: mode === "daily" ? 7 : 1,
         aqi: "yes",
-        alerts: "no"
+      alerts: "yes"
       },
       timeout: 10000 // 10 seconds timeout
     });
@@ -105,6 +107,15 @@ router.get("/weather", async (req: Request, res: Response) => {
     res.json(parsedData);
   } catch (error: any) {
     console.error("Error fetching weather data:", error);
+    if (error.response) {
+      console.error("Response data:", error.response.data);
+      console.error("Response status:", error.response.status);
+      console.error("Response headers:", error.response.headers);
+    } else if (error.request) {
+      console.error("No response received:", error.request);
+    } else {
+      console.error("Error setting up request:", error.message);
+    }
     const status = error.response?.status || 500;
     const message = error.response?.data?.error?.message || error.message || "Failed to fetch weather data.";
     res.status(status).json({ error: message });
