@@ -18,7 +18,7 @@ CACHE_DURATION = timedelta(minutes=5)
 prediction_cache = {}
 
 # Load environment variables
-API_KEY = os.getenv("WEATHER_API_KEY")
+API_KEY = os.getenv("WEATHERAPI_KEY")
 DB_PARAMS = {
     "dbname": os.getenv("DB_NAME"),
     "user": os.getenv("DB_USER"),
@@ -30,11 +30,17 @@ DB_PARAMS = {
 # Initialize H2O
 h2o.init()
 model_path = os.path.join(os.path.dirname(__file__), "h2o_automl_model", "GLM_1_AutoML_1_20250425_144833")
-model = h2o.load_model(model_path)
+try:
+    model = h2o.load_model(model_path)
+except Exception as e:
+    print(f"Error loading H2O model from {model_path}: {e}")
+    model = None
 
 # Define prediction endpoint using H2O model
 @app.route('/predict', methods=['POST'])
 def predict():
+    if model is None:
+        return jsonify({'error': 'Model not loaded'}), 500
     data = request.get_json()
     # Convert input data to H2OFrame
     h2o_data = h2o.H2OFrame(data)
