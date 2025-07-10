@@ -8,8 +8,8 @@ import rateLimit from "express-rate-limit";
 dotenv.config();
 
 
-console.log("DEBUG: WEATHERAPI_KEY =", process.env.WEATHERAPI_KEY);
-console.log("DEBUG: Loaded WEATHERAPI_KEY length:", process.env.WEATHERAPI_KEY ? process.env.WEATHERAPI_KEY.length : "undefined");
+console.log("DEBUG: WEATHERAPI_KEY = [HIDDEN]");
+console.log("DEBUG: Loaded WEATHERAPI_KEY length: [HIDDEN]");
 
 if (!process.env.WEATHERAPI_KEY) {
   console.error("ERROR: WEATHERAPI_KEY is not set in environment variables.");
