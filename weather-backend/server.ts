@@ -2,6 +2,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
+import cors from "cors";
 // @ts-ignore
 import weatherRoute from "./api/weather";
 
@@ -18,6 +19,7 @@ const PORT = process.env.BACKEND_PORT || 6000;
 
 // Middleware
 app.use(morgan("combined")); // Global request logging
+app.use(cors()); // Enable CORS for all origins
 app.use(express.json());
 
 // Test route to verify server is reachable
