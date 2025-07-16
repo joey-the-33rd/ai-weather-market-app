@@ -8,6 +8,25 @@ import { motion } from "framer-motion";
 import CustomTooltip from './components/ui/CustomTooltip';
 
 
+/**
+ * The main App component.
+ *
+ * This component renders the entire application, including the
+ * header, input field, weather data table, and chart.
+ *
+ * It also handles the dark mode toggle and the forecast view toggle.
+ *
+ * State:
+ * - location: the user's input location
+ * - weatherData: an array of weather data objects
+ * - darkMode: a boolean indicating whether dark mode is on or off
+ * - forecastView: a string indicating whether the hourly or daily forecast is shown
+ *
+ * Props: none
+ *
+ * @function App
+ * @returns {ReactElement} The rendered component
+ */
 export default function App() {
   const [location, setLocation] = useState("");
   const [weatherData, setWeatherData] = useState(null);
@@ -147,7 +166,7 @@ export default function App() {
                 <div><strong>🌬️ Wind:</strong> {weatherData[0].wind_speed_kmh} km/h</div>
                 <div><strong>🌫️ Pressure:</strong> {weatherData[0].pressure_hpa} hPa</div>
                 <div><strong>🔆 UV Index:</strong> {weatherData[0].uv_index ?? 'N/A'}</div>
-                <div><strong>🏭 Air Quality:</strong> {weatherData[0].air_quality_index ?? 'N/A'}</div>
+                <div><strong>🫁 Air Quality:</strong> {weatherData[0].air_quality_index ?? 'N/A'}</div>
               </div>
 
               <h3 style={{ marginTop: 30 }}>📈 Weekly Summary</h3>
