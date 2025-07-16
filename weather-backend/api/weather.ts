@@ -12,7 +12,7 @@ console.log("DEBUG: WEATHERAPI_KEY = [HIDDEN]");
 console.log("DEBUG: Loaded WEATHERAPI_KEY length: [HIDDEN]");
 
 if (!process.env.WEATHERAPI_KEY) {
-  console.error("ERROR: WEATHERAPI_KEY is not set in environment variables.");
+  console.error("ERROR: ❌ WEATHERAPI_KEY is not set in environment variables.");
   process.exit(1);
 }
 
@@ -44,7 +44,7 @@ router.get("/weather", async (req: Request, res: Response) => {
   }
 
   try {
-    console.log("Fetching weather data from external API for location:", location);
+    console.log("📡 Fetching weather data from external API for location:", location);
     const response = await axios.get("http://api.weatherapi.com/v1/forecast.json", {
       params: {
         key: process.env.WEATHERAPI_KEY,
@@ -55,7 +55,7 @@ router.get("/weather", async (req: Request, res: Response) => {
       },
       timeout: 10000 // 10 seconds timeout
     });
-    console.log("Received response from external API");
+    console.log("📥 Received response from external API");
 
     const { location: loc, forecast } = response.data;
     const forecastEntries = mode === "hourly"
