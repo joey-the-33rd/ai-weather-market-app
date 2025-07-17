@@ -45,6 +45,7 @@ export default function App() {
       const response = await axios.get("/api/weather", {
         params: { location, mode: forecastView }
       });
+      console.log("Fetched weather data:", response.data);  // Added log to inspect weather data
       setWeatherData(response.data);
     } catch (error) {
       console.error("Error fetching weather data:", error);
@@ -56,7 +57,24 @@ export default function App() {
     if (condition.includes("Rain")) return "🌧️";
     if (condition.includes("Cloud")) return "☁️";
     if (condition.includes("Storm")) return "🌩️";
-    return "🌡️";
+    if (condition.includes("Snow")) return "❄️";
+    if (condition.includes("Fog")) return "🌫️";
+    if (condition.includes("Windy")) return "🌬️";
+    if (condition.includes("Clear")) return "🌤️";
+    if (condition.includes("Haze")) return "🌫️";
+    if (condition.includes("Drizzle")) return "💧🌦️";
+    if (condition.includes("Thunderstorm")) return "⛈️";
+    if (condition.includes("Overcast")) return "☁️";
+    if (condition.includes("Partly Cloudy")) return "⛅";
+    if (condition.includes("Tornado")) return "🌪️";
+    if (condition.includes("Hurricane")) return "🌀";
+    if (condition.includes("Blizzard")) return "❄️🌨️";
+    if (condition.includes("Dust")) return "🌪️";
+    if (condition.includes("Ash")) return "🌋";
+    if (condition.includes("Smoke")) return "💨";
+    if (condition.includes("Sleet")) return "🌨️";
+
+    return "🌡️"; // default emoji
   };
 
   const groupByDay = (data) => {
