@@ -52,30 +52,7 @@ export default function App() {
     }
   };
 
-  const getWeatherEmoji = (condition) => {
-    if (condition.includes("Sunny")) return "☀️";
-    if (condition.includes("Rain")) return "🌧️";
-    if (condition.includes("Cloud")) return "☁️";
-    if (condition.includes("Storm")) return "🌩️";
-    if (condition.includes("Snow")) return "❄️";
-    if (condition.includes("Fog")) return "🌫️";
-    if (condition.includes("Windy")) return "🌬️";
-    if (condition.includes("Clear")) return "🌤️";
-    if (condition.includes("Haze")) return "🌫️";
-    if (condition.includes("Drizzle")) return "💧🌦️";
-    if (condition.includes("Thunderstorm")) return "⛈️";
-    if (condition.includes("Overcast")) return "☁️";
-    if (condition.includes("Partly Cloudy")) return "⛅";
-    if (condition.includes("Tornado")) return "🌪️";
-    if (condition.includes("Hurricane")) return "🌀";
-    if (condition.includes("Blizzard")) return "❄️🌨️";
-    if (condition.includes("Dust")) return "🌪️";
-    if (condition.includes("Ash")) return "🌋";
-    if (condition.includes("Smoke")) return "💨";
-    if (condition.includes("Sleet")) return "🌨️";
-
-    return "🌡️"; // default emoji
-  };
+  // Removed getWeatherEmoji function as we now use weather_icon URLs from API data
 
   const groupByDay = (data) => {
     const groups = {};
@@ -180,7 +157,7 @@ export default function App() {
               }}>
                 <div><strong>🌡️ Temperature:</strong> {weatherData[0].temperature_c}°C</div>
                 <div><strong>💧 Humidity:</strong> {weatherData[0].humidity_percent}%</div>
-                <div><strong>📍 Condition:</strong> {getWeatherEmoji(weatherData[0].weather_condition)} {weatherData[0].weather_condition}</div>
+                <div><strong>📍 Condition:</strong> <img src={weatherData[0].weather_icon} alt={weatherData[0].weather_condition} style={{verticalAlign: 'middle', marginRight: 8}} /> {weatherData[0].weather_condition}</div>
                 <div><strong>🌬️ Wind:</strong> {weatherData[0].wind_speed_kmh} km/h</div>
                 <div><strong>🌫️ Pressure:</strong> {weatherData[0].pressure_hpa} hPa</div>
                 <div><strong>🔆 UV Index:</strong> {weatherData[0].uv_index ?? 'N/A'}</div>
@@ -250,7 +227,7 @@ export default function App() {
                       <td>{w.pressure_hpa}</td>
                       <td>{w.latitude}</td>
                       <td>{w.longitude}</td>
-                      <td>{getWeatherEmoji(w.weather_condition)} {w.weather_condition}</td>
+                      <td><img src={w.weather_icon} alt={w.weather_condition} style={{verticalAlign: 'middle', marginRight: 8}} /> {w.weather_condition}</td>
                       <td>{w.uv_index ?? 'N/A'}</td>
                       <td>{w.air_quality_index ?? 'N/A'}</td>
                     </tr>
