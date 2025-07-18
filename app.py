@@ -7,7 +7,7 @@ import numpy as np
 import joblib # type: ignore
 import h2o # type: ignore
 from h2o.estimators import H2OGradientBoostingEstimator # type: ignore
-from flask import Flask, request, jsonify # type: ignore
+from flask import Flask, request, jsonify, abort # type: ignore
 from datetime import datetime, timedelta
 
 load_dotenv()
@@ -36,8 +36,18 @@ except Exception as e:
     print(f"Error loading H2O model from {model_path}: {e}")
     model = None
 
+def require_api_key(func):
+    def wrapper(*args, **kwargs):
+        key = request.headers.get('x-api-key') or request.args.get('api_key')
+        if not key or key != API_KEY:
+            abort(401, description="Unauthorized: API key is missing or invalid")
+        return func(*args, **kwargs)
+    wrapper.__name__ = func.__name__
+    return wrapper
+
 # Define prediction endpoint using H2O model
 @app.route('/predict', methods=['POST'])
+@require_api_key
 def predict():
     if model is None:
         return jsonify({'error': 'Model not loaded'}), 500
@@ -51,6 +61,7 @@ def predict():
     return jsonify({'prediction': pred_list})
 
 @app.route('/api/weather', methods=['GET'])
+@require_api_key
 def get_weather():
     city = request.args.get('city')
     if not city:
