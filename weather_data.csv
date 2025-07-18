@@ -1,0 +1,9 @@
+id,city,country,latitude,longitude,recorded_at,temperature_c,humidity_percent,pressure_hpa,wind_speed_kmh,wind_direction_deg,precipitation_mm,uv_index,air_quality_index,weather_condition,cloud_cover_percent,visibility_km,dew_point_c,solar_radiation_w_m2,sunrise_time,sunset_time
+1,Nairobi,Ke,-1.283300,36.816700,2025-07-07 16:25:00,16.8,68,,13,,0.07,6,,Patchy rain possible,,,,,06:35:00,18:38:00
+2,Nairobi,Ke,-1.283300,36.816700,2025-07-07 16:10:00,17.2,67,,15.5,,0.02,6,,Cloudy,,,,,06:35:00,18:38:00
+3,Nairobi,Ke,-1.283300,36.816700,2025-07-07 16:10:00,17.2,68,,17.3,,0.03,6,,Patchy rain possible,,,,,06:35:00,18:38:00
+4,Nairobi,Ke,-1.283300,36.816700,2025-07-07 15:51:00,17.6,70,,12.6,,0.45,6,,Patchy rain possible,,,,,06:35:00,18:38:00
+5,Nairobi,Ke,-1.283300,36.816700,2025-07-07 16:10:00,17.9,69,,15.1,,0.26,6,,Patchy rain possible,,,,,06:36:00,18:39:00
+6,Nairobi,Ke,-1.283300,36.816700,2025-07-07 16:09:00,17,75,,9.7,,0.11,5,,Patchy rain possible,,,,,06:36:00,18:39:00
+7,Nairobi,Ke,-1.283300,36.816700,2025-07-07 16:26:00,17,77,,16.9,,0.11,6,,Patchy rain possible,,,,,06:36:00,18:39:00
+8,Nairobi,Ke,-1.283300,36.816700,2025-07-07 16:26:00,17.3,76,,17.3,,1.87,6,,Light rain shower,,,,,06:36:00,18:39:00
