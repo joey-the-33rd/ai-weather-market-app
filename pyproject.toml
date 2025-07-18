@@ -24,6 +24,7 @@ dependencies = [
     "packaging==24.2",
     "pandas==2.2.3",
     "pillow==11.1.0",
+    "psycopg2>=2.9.10",
     "psycopg2-binary==2.9.10",
     "pyparsing==3.2.3",
     "pyt>=1.0.5",
