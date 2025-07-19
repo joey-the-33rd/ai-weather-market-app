@@ -1,5 +1,7 @@
 import os
 import sys
+import jwt  # type: ignore
+from functools import wraps
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from dotenv import load_dotenv # type: ignore
 import psycopg2 # type: ignore
@@ -26,6 +28,7 @@ DB_PARAMS = {
     "host": os.getenv("DB_HOST"),
     "port": os.getenv("DB_PORT")
 }
+JWT_SECRET = os.getenv("JWT_SECRET", "your_jwt_secret_key")  # Add a default for development
 
 # Initialize H2O
 h2o.init()
@@ -45,9 +48,46 @@ def require_api_key(func):
     wrapper.__name__ = func.__name__
     return wrapper
 
+def require_jwt(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        auth_header = request.headers.get('Authorization', None)
+        if not auth_header:
+            abort(401, description="Unauthorized: Missing Authorization header")
+        parts = auth_header.split()
+        if parts[0].lower() != 'bearer' or len(parts) != 2:
+            abort(401, description="Unauthorized: Invalid Authorization header format")
+        token = parts[1]
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            # Optionally, you can add user info to request context here
+        except jwt.ExpiredSignatureError:
+            abort(401, description="Unauthorized: Token has expired")
+        except jwt.InvalidTokenError:
+            abort(401, description="Unauthorized: Invalid token")
+        return func(*args, **kwargs)
+    return wrapper
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    # For demonstration, use a simple check. Replace with real user validation.
+    if username == 'admin' and password == 'password':
+        payload = {
+            'sub': username,
+            'iat': datetime.utcnow(),
+            'exp': datetime.utcnow() + timedelta(hours=1)
+        }
+        token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
+        return jsonify({'token': token})
+    else:
+        abort(401, description="Unauthorized: Invalid credentials")
+
 # Define prediction endpoint using H2O model
 @app.route('/predict', methods=['POST'])
-@require_api_key
+@require_jwt
 def predict():
     if model is None:
         return jsonify({'error': 'Model not loaded'}), 500
@@ -61,7 +101,7 @@ def predict():
     return jsonify({'prediction': pred_list})
 
 @app.route('/api/weather', methods=['GET'])
-@require_api_key
+@require_jwt
 def get_weather():
     city = request.args.get('city')
     if not city:
