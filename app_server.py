@@ -30,7 +30,7 @@ def require_jwt(func):
             auth_header = request.environ.get('HTTP_AUTHORIZATION', None)
         # print("Authorization header received:", auth_header)  # Debug log removed for production
         if not auth_header:
-            abort(401, description="Unauthorized: Missing Authorization header")
+            abort(401, description="❌ Unauthorized: Missing Authorization header")
         parts = auth_header.split()
         if parts[0].lower() != 'bearer' or len(parts) != 2:
             abort(401, description="❌ Unauthorized: Invalid Authorization header format")
@@ -60,9 +60,10 @@ model = h2o.load_model(model_path)
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    data = request.get_json(force=True)
+    print("Login request data:", data)  # Debug log
+    username = data.get('username') if data else None
+    password = data.get('password') if data else None
     # For demonstration, use a simple check. Replace with real user validation.
     if username == 'admin' and password == 'password':
         payload = {
@@ -71,8 +72,11 @@ def login():
             'exp': datetime.utcnow() + timedelta(hours=1)
         }
         token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
-        # Do not display token in response for production, return a success message instead
-        return jsonify({'message': '✅ Login successful'})
+        # Return token for testing purposes with explicit content-type header
+        response = jsonify({'token': token})
+        response.headers['Content-Type'] = 'application/json'
+        print("Login response token:", token)  # Debug log
+        return response
     else:
         abort(401, description="❌ Unauthorized: Invalid credentials")
 
