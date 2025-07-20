@@ -1,9 +1,10 @@
 #!/bin/bash
 
-# Get JWT token from login endpoint
-TOKEN=$(curl -s -X POST http://localhost:5050/login -H "Content-Type: application/json" -d '{"username":"admin","password":"password"}' | jq -r '.token')
+# Get JWT token from login endpoint with proper JSON parsing
+LOGIN_RESPONSE=$(curl -s -X POST http://localhost:5050/login -H "Content-Type: application/json" -d '{"username":"admin","password":"password"}')
+TOKEN=$(echo "$LOGIN_RESPONSE" | jq -r '.token')
 
-echo "Received JWT token: $TOKEN"
+echo "✅ 🔐 Received JWT token: $TOKEN"
 
 # Use the token to call the protected /predict endpoint with sample data
 curl -s -X POST http://localhost:5050/predict \
