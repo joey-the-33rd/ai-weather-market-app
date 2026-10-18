@@ -50,8 +50,8 @@ All documentation lives in the `docs/` directory.
 ### 1. **Clone the Repository**
 
 ```bash
-git clone https://github.com/joeythe33rd/weather-ai-app.git
-cd weather-ai-app
+git clone https://github.com/joey-the-33rd/ai-weather-market-app.git
+cd ai-weather-market-app
 ```
 
 ### 2. **Install Backend Dependencies**
@@ -73,10 +73,10 @@ You can change the port number as needed. Suggested ports include 3000, 8000, 80
 ### 4. **Start Flask Server**
 
 ```bash
-bash run_flask.sh
+bash shell-scripts/run_flask.sh
 ```
 
-### 4. **Setup Frontend (React Native)**
+### 5. **Setup Frontend (React Native)**
 
 ```bash
 cd frontend
@@ -84,7 +84,7 @@ npm install
 npm start
 ```
 
-### 5. **Database Setup (PostgreSQL)**
+### 6. **Database Setup (PostgreSQL)**
 
 Ensure PostgreSQL is installed and run:
 
