@@ -21,8 +21,8 @@ Before starting, ensure you have the following installed on your system:
 Open a terminal and run:
 
 ```bash
-git clone https://github.com/joeythe33rd/weather-ai-app.git
-cd weather-ai-app
+git clone https://github.com/joey-the-33rd/ai-weather-market-app.git
+cd ai-weather-market-app
 ```
 
 ---
@@ -67,7 +67,7 @@ Replace `your_weatherapi_key_here` with your actual API key from [weatherapi.com
 Run the provided shell script to create or update the PostgreSQL user for the app:
 
 ```bash
-bash create_or_alter_user.sh
+bash shell-scripts/create_or_alter_user.sh
 ```
 
 This script will create the user `weather_db` with password `weather_db_user_2025` if it does not exist, or update the password if it does.
@@ -119,7 +119,7 @@ brew services list
 - Use the test connection script to verify connectivity:
 
 ```bash
-python test_db_connection.py
+python tests/test_db_connection.py
 ```
 
 ---
@@ -139,7 +139,7 @@ python setup_db.py
 Start the Flask API server:
 
 ```bash
-bash run_flask.sh
+bash shell-scripts/run_flask.sh
 ```
 
 The server will start on the port specified in your `.env` file (default 4000).
