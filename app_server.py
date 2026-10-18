@@ -1,18 +1,17 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv # type: ignore
 from flask import Flask, request, jsonify, abort # type: ignore
 import requests # type: ignore
 import json
 import jwt  # type: ignore
 from functools import wraps
+import pandas as pd
+import h2o
+from flask_cors import CORS
 
 # Load environment variables explicitly from the .env file in ai-weather-market-app directory
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
-
-import h2o
-import json
-from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
@@ -68,8 +67,8 @@ def login():
     if username == 'admin' and password == 'password':
         payload = {
             'sub': username,
-            'iat': datetime.utcnow(),
-            'exp': datetime.utcnow() + timedelta(hours=1)
+            'iat': datetime.now(timezone.utc),
+            'exp': datetime.now(timezone.utc) + timedelta(hours=1)
         }
         token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
         # Return token for testing purposes with explicit content-type header
@@ -122,23 +121,7 @@ def predict():
             if col != "weather_condition" and row[col] is None:
                 return jsonify({"error": f"Missing required field: {col}"}), 400
 
-        import pandas as pd
-
         # Create pandas DataFrame with expected columns
-        expected_columns = [
-            "humidity_percent",
-            "wind_speed_kmh",
-            "pressure_hpa",
-            "precipitation_mm",
-            "wind_direction_deg",
-            "uv_index",
-            "air_quality_index",
-            "cloud_cover_percent",
-            "visibility_km",
-            "dew_point_c",
-            "solar_radiation_w_m2",
-            "weather_condition"
-        ]
         data_dict = {col: [input_data.get(col, None)] for col in expected_columns}
 
         # Set weather_condition as categorical with correct categories
@@ -227,9 +210,7 @@ def get_weather():
     return jsonify(weather_data)
 
 if __name__ == '__main__':
-    from dotenv import load_dotenv
     load_dotenv()  # Load environment variables from .env file
-    import os
     port_str = os.getenv("PORT", "5050")
     try:
         port = int(port_str)
