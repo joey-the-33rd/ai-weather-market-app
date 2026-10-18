@@ -47,6 +47,7 @@ instance/
 .vscode/
 .history/
 *.code-workspace
+tempCodeRunnerFile*
 
 # macOS
 .DS_Store
@@ -79,7 +80,7 @@ ios/*.xcodeproj/project.xcworkspace/
 ios/*.xcodeproj/xcuserdata/
 ios/*.xcodeproj/xcshareddata/
 
-# Enviroment files
+# Environment files
 .env
 .env.local
 .env.development
