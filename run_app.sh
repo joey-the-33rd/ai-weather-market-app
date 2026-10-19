@@ -1,13 +1,19 @@
-#!/bin/bash
-# Script to activate the virtual environment and run the Flask app and React Native app
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Activate the virtual environment
-source .venv/bin/activate
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT_DIR"
 
-# Run the Flask app in the background
-python app_server.py &
+if [[ -f ".venv/bin/activate" ]]; then
+  # shellcheck disable=SC1091
+  source ".venv/bin/activate"
+fi
 
-# Navigate to the React Native app directory and start the Metro bundler
-cd WeatherApp
+python app.py &
+API_PID=$!
+cleanup() { kill "$API_PID" 2>/dev/null || true; }
+trap cleanup EXIT INT TERM
+
+cd "$ROOT_DIR/frontend"
 npm install
 npm start

@@ -23,14 +23,14 @@ MODEL_PATH = os.path.join(
     "GLM_1_AutoML_1_20250425_144833",
 )
 model = None
-try:
-    h2o.init()
-    if os.path.exists(MODEL_PATH):
+if os.path.exists(MODEL_PATH):
+    try:
+        h2o.init()
         model = h2o.load_model(MODEL_PATH)
-    else:
-        app.logger.warning("H2O model directory not found: %s", MODEL_PATH)
-except Exception:
-    app.logger.exception("H2O initialization/model loading failed")
+    except Exception:
+        app.logger.exception("H2O initialization/model loading failed")
+else:
+    app.logger.warning("H2O model directory not found: %s", MODEL_PATH)
 
 
 def require_jwt(func):

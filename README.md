@@ -1,184 +1,74 @@
-<p align="center">
-  <img src="Assets/ai-weather-app-logo.png" alt="AI Weather App" width="400">
-</p>
+# AI Weather Market App
 
-# 🌦️ AI-Powered Weather & Market Prediction App
+A weather dashboard for hourly and daily forecasts. The web UI is in `frontend/`; the Flask API entry point used by the Procfile is `app.py`.
 
-## 📘 Summary
+## Current capabilities
 
-An AI-powered weather and market forecasting application designed to empower farmers and agribusiness stakeholders in Africa. It provides:
+- Retrieves up to three days of hourly or daily forecast data from WeatherAPI.com.
+- Displays temperature, humidity, wind, pressure, precipitation, UV and available air-quality fields.
+- Returns a consistent JSON array from `GET /api/weather`.
+- Keeps the optional H2O prediction endpoint separate from weather lookup.
 
-- Real-time **weather predictions**
-- **Crop market price forecasting**
-- AI-driven **credit scoring**
-- Blockchain-enabled **smart contracts**
-- Emergency alerts and climate resilience insights
+Market-price forecasting, credit scoring, blockchain contracts, and emergency-alert workflows are not implemented by the current API and should not be treated as production capabilities.
 
-Built with a full-stack architecture, the app combines **AI models**, **secure APIs**, **cloud deployment**, and a mobile-first frontend to deliver accurate, scalable, and accessible solutions.
+## Requirements
 
----
+- Python 3.11+
+- Node.js and npm
+- A WeatherAPI.com API key
+- Optional: a compatible H2O model directory for `POST /predict`
 
-## 💻 Development Languages & Frameworks
+## Local setup
 
-| Layer        | Technology Used                          |
-|--------------|-------------------------------------------|
-| **Backend**  | Python, Flask, FastAPI                    |
-| **AI Models**| TensorFlow, Scikit-learn, Pandas, NumPy   |
-| **Frontend** | React Native / Flutter / Kotlin (Android)|
-| **Database** | PostgreSQL, MongoDB                      |
-| **Blockchain**| Solidity, Ethereum, Hyperledger          |
-| **Cloud**    | AWS / Google Cloud / Azure               |
+1. Install Python dependencies:
 
----
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
-## 📚 Documentation
+2. Create a root `.env` file and do not commit it:
 
-All documentation lives in the `docs/` directory.
+   ```dotenv
+   WEATHERAPI_KEY=your_weatherapi_key
+   PORT=5050
+   FLASK_DEBUG=false
+   ```
 
-### Key Docs
+Set a strong `JWT_SECRET` in the backend environment if you configure authenticated prediction requests. The `/login` route intentionally does not issue tokens because this repository does not yet contain a real user store or identity provider.
 
-- `docs/setup.md` – Step-by-step environment setup
-- `docs/api-spec.md` – API endpoints and response formats
-- `docs/ai-models.md` – AI model architecture and training details
-- `docs/blockchain-integration.md` – Blockchain structure and logic
-- `docs/contributing.md` – Contribution best practices
+3. Start the API from the repository root with `python app.py`.
 
----
+4. In another terminal, run `cd frontend`, `npm install`, then `npm start`. The development server proxies `/api` requests to `http://localhost:5050`. For a separately hosted frontend, configure its API base URL to point to the deployed backend.
 
-## 🚀 Installation Guide
+## API
 
-### 1. **Clone the Repository**
+### `GET /api/weather?location=Nairobi&mode=hourly`
 
-```bash
-git clone https://github.com/joeythe33rd/weather-ai-app.git
-cd weather-ai-app
-```
+- `location` is required.
+- `mode` is `hourly` (default) or `daily`.
+- Returns an array of records with fields such as `recorded_at`, `temperature_c`, `humidity_percent`, `wind_speed_kmh`, `weather_condition`, and `weather_icon`.
+- Returns a useful HTTP error when the API key is missing, the provider times out, or the location cannot be resolved.
 
-### 2. **Install Backend Dependencies**
+### `POST /predict`
 
-```bash
-pip install -r requirements.txt
-```
+This endpoint requires a valid Bearer JWT and a compatible H2O model. Production authentication and model-schema validation are still required before exposing it to users.
 
-### 3. **Configure Environment Variables**
+## Deployment notes
 
-Create a `.env` file in the root directory (if not already present) and set the port for the Flask server:
+- Configure `WEATHERAPI_KEY` in the backend host's secret/environment settings; never put it in frontend code.
+- Configure the frontend's API base URL to point to the backend origin when deployed separately.
+- Install dependencies from `requirements.txt` and use the `Procfile` for a Gunicorn deployment.
+- Test the deployed API and frontend together before calling the application production-ready.
 
-```
-PORT=4000
-```
+## Security and limitations
 
-You can change the port number as needed. Suggested ports include 3000, 8000, 8080, 5000, 4000, 7000, 9000, and 8888. Ensure the port is above 1024 and not used by other services.
+- Never commit `.env`, API keys, JWT secrets, or user credentials.
+- Weather lookup is public and should be rate-limited at the hosting layer before broad release.
+- The prediction endpoint depends on a compatible model and real authentication configuration.
+- Forecast and air-quality availability and provider quotas depend on the WeatherAPI.com plan and response.
 
-### 4. **Start Flask Server**
+## License
 
-```bash
-bash run_flask.sh
-```
-
-### 4. **Setup Frontend (React Native)**
-
-```bash
-cd frontend
-npm install
-npm start
-```
-
-### 5. **Database Setup (PostgreSQL)**
-
-Ensure PostgreSQL is installed and run:
-
-```sql
-CREATE DATABASE weather_db;
-```
-
-Then:
-
-```bash
-python setup_db.py
-```
-
----
-
-## 🤝 Contribution Guidelines
-
-We welcome contributors to improve the project!
-
-1. Fork the repository.
-2. Create a feature branch:
-
-```bash
-git checkout -b feature-your-feature-name
-```
-
-3.Make your changes and commit:
-
-```bash
-git commit -m "Add: Your detailed message"
-```
-
-4.Push and open a pull request:
-
-```bash
-git push origin feature-your-feature-name
-```
-
-### ✅ Contribution Checklist
-
-- [ ] Follow PEP8 standards (Python)
-- [ ] Write or update tests
-- [ ] Add documentation for new features
-- [ ] Link any related issues in your PR
-
----
-
-## 🛠️ Patching Guidelines
-
-To patch bugs or security vulnerabilities:
-
-- Open an issue with a detailed description.
-- Reference issue number in commits (e.g., `Fixes #45`)
-- Use semantic versioning:
-  - Patch: `v1.0.1`
-  - Minor Feature: `v1.1.0`
-  - Major Release: `v2.0.0`
-
----
-
-## 📦 Resources
-
-| Resource              | Link                                                   |
-|-----------------------|--------------------------------------------------------|
-| OpenWeatherMap API    | [openweathermap.org](https://openweathermap.org/api)   |
-| NOAA Climate Data     | [ncei.noaa.gov](https://www.ncei.noaa.gov/)            |
-| FAO Price Index       | [fao.org](https://www.fao.org/worldfoodsituation/)     |
-| Kenya Met Department  | [meteo.go.ke](https://www.meteo.go.ke/)                |
-| TensorFlow            | [tensorflow.org](https://www.tensorflow.org/)          |
-| Solidity              | [soliditylang.org](https://docs.soliditylang.org/)     |
-| React Native          | [reactnative.dev](https://reactnative.dev/)            |
-| PostgreSQL            | [postgresql.org](https://www.postgresql.org/)          |
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License**.  
-See the [LICENSE](./LICENSE) file for details.
-
----
-
-## 🙌 Acknowledgements
-
-Special thanks to:
-
-- Kenyan farmers and agribusiness cooperatives
-- Open-source developers and AI researchers
-- Institutions contributing open data (NOAA, FAO, KenyaMet)
-
----
-
-## 📫 Contact & Support
-
-- **Lead Developer:** [Joseph Ndungu](https://www.linkedin.com/in/joseph-ndungu-74431b135/)
-- **Email:** [jothefu@gmail.com](mailto:jothefu@gmail.com)
-- **GitHub:** [joeythe33rd](https://github.com/joeythe33rd)
+MIT. See [LICENSE](LICENSE).
