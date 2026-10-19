@@ -1,16 +1,57 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import axios from 'axios';
-import App from '../App';
+import React from "react";
+import { act } from "react-dom/test-utils";
+import { createRoot } from "react-dom/client";
+import axios from "axios";
+import App from "../App";
 
-import { vi } from 'vitest';
-vi.mock('axios');
+jest.mock("axios");
 
-describe('App Integration Tests', () => {
-  test('fetches and displays weather data on valid location input', async () => {
-    const mockData = [
-      {
-        recorded_at: "2025-07-09T10:00:00.000Z",
+describe("Weather dashboard", () => {
+  let host;
+  let root;
+
+  beforeEach(() => {
+    host = document.createElement("div");
+    document.body.appendChild(host);
+    root = createRoot(host);
+    axios.get.mockReset();
+    localStorage.clear();
+  });
+
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount();
+    });
+    host.remove();
+  });
+
+  async function renderApp() {
+    await act(async () => {
+      root.render(<App />);
+    });
+  }
+
+  async function searchFor(location) {
+    const input = host.querySelector('input[placeholder="Enter location"]');
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+    setter.call(input, location);
+    await act(async () => {
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
+    const button = Array.from(host.querySelectorAll("button")).find((item) =>
+      item.textContent.includes("Get Weather")
+    );
+    await act(async () => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+  }
+
+  test("fetches and displays forecast records for a valid location", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: [{
+        recorded_at: "2026-10-20 10:00",
         temperature_c: 20,
         humidity_percent: 50,
         wind_speed_kmh: 10,
@@ -24,47 +65,39 @@ describe('App Integration Tests', () => {
         weather_icon: "",
         uv_index: 5,
         air_quality_index: 1
-      }
-    ];
-    axios.get.mockResolvedValueOnce({ data: mockData });
-
-    render(<App />);
-
-    const input = screen.getByPlaceholderText(/enter location/i);
-    fireEvent.change(input, { target: { value: 'Test City' } });
-
-    const button = screen.getByText(/get weather/i);
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(screen.getByText(/test city, test country/i)).toBeInTheDocument();
-      expect(screen.getByText(/20/i)).toBeInTheDocument();
-      expect(screen.getByText(/50%/i)).toBeInTheDocument();
+      }]
     });
+
+    await renderApp();
+    await searchFor("Test City");
+
+    expect(axios.get).toHaveBeenCalledWith("/api/weather", {
+      params: { location: "Test City", mode: "hourly" }
+    });
+    expect(host.textContent).toContain("Test City, Test Country");
+    expect(host.textContent).toContain("20°C");
+    expect(host.textContent).toContain("50%");
   });
 
-  test('displays error message on fetch failure', async () => {
-    axios.get.mockRejectedValueOnce(new Error('Network Error'));
+  test("shows a useful message when the weather request fails", async () => {
+    axios.get.mockRejectedValueOnce(new Error("Network Error"));
+    await renderApp();
+    await searchFor("Test City");
 
-    render(<App />);
-
-    const input = screen.getByPlaceholderText(/enter location/i);
-    fireEvent.change(input, { target: { value: 'Test City' } });
-
-    const button = screen.getByText(/get weather/i);
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(screen.getByText(/failed to fetch weather data/i)).toBeInTheDocument();
-    });
+    expect(host.textContent).toContain("Network Error");
   });
 
-  test('shows error if location input is empty', () => {
-    render(<App />);
+  test("asks for a location when the input is empty", async () => {
+    await renderApp();
+    const button = Array.from(host.querySelectorAll("button")).find((item) =>
+      item.textContent.includes("Get Weather")
+    );
 
-    const button = screen.getByText(/get weather/i);
-    fireEvent.click(button);
+    await act(async () => {
+      button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
 
-    expect(screen.getByText(/please enter a location/i)).toBeInTheDocument();
+    expect(host.textContent).toContain("Enter a town, city, or place");
+    expect(axios.get).not.toHaveBeenCalled();
   });
 });
