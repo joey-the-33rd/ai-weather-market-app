@@ -18,7 +18,6 @@ WEATHERAPI_URL = "https://api.weatherapi.com/v1/forecast.json"
 # prevent the weather endpoint from starting.
 MODEL_PATH = os.path.join(
     os.path.dirname(__file__),
-    "models",
     "h2o_automl_model",
     "GLM_1_AutoML_1_20250425_144833",
 )
