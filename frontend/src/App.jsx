@@ -35,20 +35,40 @@ export default function App() {
     return stored ? JSON.parse(stored) : false;
   });
   const [forecastView, setForecastView] = useState('hourly');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
   }, [darkMode]);
 
   const fetchWeather = async () => {
+    const query = location.trim();
+    if (!query) {
+      setErrorMessage("Enter a town, city, or place to get weather data.");
+      setWeatherData(null);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage("");
     try {
       const response = await axios.get("/api/weather", {
-        params: { location, mode: forecastView }
+        params: { location: query, mode: forecastView }
       });
-      console.log("Fetched weather data:", response.data);  // Added log to inspect weather data
+      if (!Array.isArray(response.data)) {
+        throw new Error(response.data?.error || "The weather service returned an unexpected response.");
+      }
       setWeatherData(response.data);
+      if (response.data.length === 0) {
+        setErrorMessage("No forecast records were returned for this location.");
+      }
     } catch (error) {
-      console.error("Error fetching weather data:", error);
+      const message = error.response?.data?.error || error.message || "Unable to fetch weather data. Please try again.";
+      setErrorMessage(message);
+      setWeatherData(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -130,7 +150,8 @@ export default function App() {
               onChange={(e) => setLocation(e.target.value)}
               placeholder="Enter location"
             />
-            <UIButton onClick={fetchWeather} style={buttonStyle}>Get Weather</UIButton>
+            <UIButton onClick={fetchWeather} style={buttonStyle} disabled={isLoading}>{isLoading ? "Loading weather..." : "Get Weather"}</UIButton>
+            {errorMessage && <p role="alert" style={{ color: darkMode ? "#ff8a80" : "#b00020", marginTop: 12 }}>{errorMessage}</p>}
             <UIButton onClick={() => setForecastView(forecastView === 'hourly' ? 'daily' : 'hourly')} style={buttonStyle}>
               Switch to {forecastView === 'hourly' ? 'Daily' : 'Hourly'} Forecast
             </UIButton>
