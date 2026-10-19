@@ -40,7 +40,7 @@ Set a strong `JWT_SECRET` in the backend environment if you configure authentica
 
 3. Start the API from the repository root with `python app.py`.
 
-4. In another terminal, run `cd frontend`, `npm install`, then `npm start`. The development server proxies `/api` requests to `http://localhost:5050`. For a separately hosted frontend, configure its API base URL to point to the deployed backend.
+4. In another terminal, run `cd frontend`, `npm install`, then `npm start`. The development server proxies `/api` requests to `http://localhost:5050`. For a separately hosted frontend, set `REACT_APP_API_BASE_URL` to the deployed backend origin and set backend `CORS_ORIGINS` to the exact frontend origin (comma-separated if there are multiple).
 
 ## API
 
@@ -58,7 +58,7 @@ This endpoint requires a valid Bearer JWT and a compatible H2O model. Production
 ## Deployment notes
 
 - Configure `WEATHERAPI_KEY` in the backend host's secret/environment settings; never put it in frontend code.
-- Configure the frontend's API base URL to point to the backend origin when deployed separately.
+- Set frontend `REACT_APP_API_BASE_URL` to the backend origin and backend `CORS_ORIGINS` to the exact frontend origin when deployed separately.
 - Install dependencies from `requirements.txt` and use the `Procfile` for a Gunicorn deployment.
 - Test the deployed API and frontend together before calling the application production-ready.
 

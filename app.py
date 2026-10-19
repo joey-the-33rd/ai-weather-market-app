@@ -6,9 +6,12 @@ import jwt
 import requests
 from dotenv import load_dotenv
 from flask import Flask, abort, jsonify, request
+from flask_cors import CORS
 
 load_dotenv()
 app = Flask(__name__)
+CORS_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()]
+CORS(app, resources={r"/api/*": {"origins": CORS_ORIGINS}})
 
 WEATHERAPI_KEY = os.getenv("WEATHERAPI_KEY")
 JWT_SECRET = os.getenv("JWT_SECRET")
