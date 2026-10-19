@@ -7,6 +7,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { motion } from "framer-motion";
 import CustomTooltip from './components/ui/CustomTooltip';
 
+const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/+$/, "");
+
 
 /**
  * The main App component.
@@ -53,7 +55,7 @@ export default function App() {
     setIsLoading(true);
     setErrorMessage("");
     try {
-      const response = await axios.get("/api/weather", {
+      const response = await axios.get(`${API_BASE_URL}/api/weather`, {
         params: { location: query, mode: forecastView }
       });
       if (!Array.isArray(response.data)) {
