@@ -13,9 +13,14 @@ import pandas as pd
 import requests
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from weather_model import FEATURE_COLUMNS
 
 ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
+RETRY_POLICY = Retry(total=4, connect=4, read=3, backoff_factor=1.5, status_forcelist=(429, 500, 502, 503, 504), allowed_methods=frozenset(["GET"]))
+SESSION = requests.Session()
+SESSION.mount("https://", HTTPAdapter(max_retries=RETRY_POLICY))
 HOURLY_VARIABLES = [
     "temperature_2m", "relative_humidity_2m", "dew_point_2m", "precipitation",
     "pressure_msl", "cloud_cover", "wind_speed_10m", "wind_direction_10m",
@@ -58,7 +63,7 @@ def fetch_location(location: dict, start_date: str, end_date: str) -> pd.DataFra
         "hourly": ",".join(HOURLY_VARIABLES), "timezone": "Africa/Nairobi",
         "wind_speed_unit": "kmh", "precipitation_unit": "mm",
     }
-    response = requests.get(ARCHIVE_URL, params=params, timeout=(10, 90))
+    response = SESSION.get(ARCHIVE_URL, params=params, timeout=(30, 180))
     response.raise_for_status()
     payload = response.json()
     if "hourly" not in payload or not payload["hourly"].get("time"):
@@ -76,12 +81,12 @@ def fetch_location(location: dict, start_date: str, end_date: str) -> pd.DataFra
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--start-date", default=None, help="Historical start date YYYY-MM-DD (default: about 5 years)")
+    parser.add_argument("--start-date", default=None, help="Historical start date YYYY-MM-DD (default: about 4 years)")
     parser.add_argument("--end-date", default=None, help="Historical end date YYYY-MM-DD (default: 7 days ago)")
     parser.add_argument("--output", default="weather_model.joblib", help="Output model artifact path")
     args = parser.parse_args()
     end = date.fromisoformat(args.end_date) if args.end_date else date.today() - timedelta(days=7)
-    start = date.fromisoformat(args.start_date) if args.start_date else end - timedelta(days=5 * 365)
+    start = date.fromisoformat(args.start_date) if args.start_date else end - timedelta(days=4 * 365)
     if start >= end:
         raise ValueError("--start-date must be earlier than --end-date")
 
