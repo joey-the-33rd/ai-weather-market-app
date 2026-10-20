@@ -88,3 +88,5 @@ ios/*.xcodeproj/xcshareddata/
 .env.test.local
 .env.production.local
 .env.staging.local  
+# Generated weather forecasting artifact
+weather_model.joblib

@@ -40,4 +40,4 @@ jobs:
         with:
           python-version: "3.11"
       - name: Compile Python entry points
-        run: python -m py_compile app.py app_server.py
+        run: python -m py_compile app.py app_server.py weather_model.py train_weather_model.py

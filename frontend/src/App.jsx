@@ -39,6 +39,9 @@ export default function App() {
   const [forecastView, setForecastView] = useState('hourly');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [aiForecast, setAiForecast] = useState(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
   useEffect(() => {
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
@@ -71,6 +74,28 @@ export default function App() {
       setWeatherData(null);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchAiForecast = async () => {
+    const query = location.trim();
+    if (!query) {
+      setAiError("Enter a location before requesting an AI forecast.");
+      setAiForecast(null);
+      return;
+    }
+    setAiLoading(true);
+    setAiError("");
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/ai-forecast`, {
+        params: { location: query, hours: 24 }
+      });
+      setAiForecast(response.data);
+    } catch (error) {
+      setAiForecast(null);
+      setAiError(error.response?.data?.error || error.message || "Unable to fetch AI forecast.");
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -157,6 +182,28 @@ export default function App() {
             <UIButton onClick={() => setForecastView(forecastView === 'hourly' ? 'daily' : 'hourly')} style={buttonStyle}>
               Switch to {forecastView === 'hourly' ? 'Daily' : 'Hourly'} Forecast
             </UIButton>
+            <UIButton onClick={fetchAiForecast} style={{ ...buttonStyle, marginLeft: 8 }} disabled={aiLoading}>
+              {aiLoading ? "Generating AI forecast..." : "Get AI Forecast"}
+            </UIButton>
+            {aiError && <p role="alert" style={{ color: darkMode ? "#ff8a80" : "#b00020", marginTop: 12 }}>{aiError}</p>}
+            {aiForecast && (
+              <section aria-label="AI weather forecast" style={{ marginTop: 24, padding: 16, border: "1px solid #9ca3af", borderRadius: 12 }}>
+                <h2>🤖 AI Weather Forecast — {aiForecast.location?.name}, {aiForecast.location?.country}</h2>
+                <p>One-hour-ahead predictions trained on historical weather observations, separate from the provider forecast above.</p>
+                <p><strong>Model:</strong> {aiForecast.model?.name} (v{aiForecast.model?.version})</p>
+                {aiForecast.model?.trained_through && <p><strong>Historical data through:</strong> {aiForecast.model.trained_through}</p>}
+                {aiForecast.metrics && <p><strong>Held-out MAE:</strong> Temperature {aiForecast.metrics.temperature_mae_c}°C (persistence baseline {aiForecast.metrics.temperature_persistence_mae_c}°C); precipitation {aiForecast.metrics.precipitation_mae_mm} mm (persistence baseline {aiForecast.metrics.precipitation_persistence_mae_mm} mm).</p>}
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 12 }}>
+                    <thead><tr><th>Prediction valid at</th><th>AI temperature (°C)</th><th>AI precipitation (mm)</th></tr></thead>
+                    <tbody>{(aiForecast.forecasts || []).map((item, index) => (
+                      <tr key={item.valid_at || index}><td>{item.valid_at}</td><td>{item.temperature_c}</td><td>{item.precipitation_mm}</td></tr>
+                    ))}</tbody>
+                  </table>
+                </div>
+                <small>{aiForecast.note}</small>
+              </section>
+            )}
           </motion.div>
 
           {weatherData && weatherData.length > 0 && (
