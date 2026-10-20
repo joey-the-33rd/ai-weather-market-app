@@ -45,7 +45,7 @@ The old `/predict` endpoint now returns HTTP 410 so the unrelated medical model 
    python train_weather_model.py
    ```
 
-   This writes `weather_model.joblib`. Review printed test MAE against the persistence baseline before relying on predictions. Training needs internet access and may take several minutes.
+   This writes `weather_model.joblib`. Review printed test MAE against the persistence baseline before relying on predictions. Training needs internet access and may take several minutes. GitHub Actions also has a model-training workflow that trains and publishes this artifact to `main` when the model pipeline changes; if your backend host deploys from `main`, that commit can trigger a redeploy.
 
 4. Start the API from the repository root with `python app.py`.
 
